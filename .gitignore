@@ -1,0 +1,5 @@
+.vscode/
+.env
+test.php
+backend/test_password.php
+backend/api/test_connection.php
