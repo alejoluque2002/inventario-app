@@ -18,7 +18,8 @@ const titulos = {
     dashboard:  'Dashboard',
     productos:  'Productos',
     usuarios:   'Usuarios',
-    actividad:  'Registro de actividad'
+    actividad:  'Registro de actividad',
+    apikeys:    'API Keys'
 };
 
 function mostrarSeccion(nombre) {
@@ -37,6 +38,7 @@ function mostrarSeccion(nombre) {
 
     if (nombre === 'actividad') cargarLogs();
     if (nombre === 'usuarios') cargarUsuarios();
+    if (nombre === 'apikeys') cargarApiKeys();
 }
 
 /* ==========================
@@ -129,14 +131,15 @@ function esc(str) {
    TABLA
 ========================== */
 
-function badgeStock(stock) {
+function badgeStock(stock, minimo) {
     stock = Number(stock);
+    minimo = Number(minimo);
     if (stock === 0) {
-        return `<span class="badge bg-danger">🔴 Agotado</span>`;
-    } else if (stock <= 10) {
-        return `<span class="badge bg-warning text-dark">🟡 Stock bajo (${stock})</span>`;
+        return `<span class="badge bg-danger">Agotado</span>`;
+    } else if (stock <= minimo) {
+        return `<span class="badge bg-warning text-dark">Stock bajo (${stock})</span>`;
     } else {
-        return `<span class="badge bg-success">🟢 Disponible (${stock})</span>`;
+        return `<span class="badge bg-success">Disponible (${stock})</span>`;
     }
 }
 
@@ -160,7 +163,7 @@ function mostrarProductos(productos) {
                 <td>${esc(producto.id)}</td>
                 <td>${esc(producto.nombre)}</td>
                 <td>${esc(producto.precio)}</td>
-                <td>${badgeStock(producto.stock)}</td>
+                <td>${badgeStock(producto.stock, producto.stock_minimo)}</td>
                 <td>${esc(producto.categoria)}</td>
                 <td>
                     <button
@@ -267,6 +270,8 @@ formulario.addEventListener("submit", async (e) => {
         descripcion: document.getElementById("descripcion").value,
         precio:      parseFloat(document.getElementById("precio").value),
         stock:       parseInt(document.getElementById("stock").value),
+        stock_minimo:  parseInt(document.getElementById("stockMinimo").value),
+        codigo_barras: document.getElementById("codigoBarras").value || null,
         categoria:   document.getElementById("categoria").value
     };
 
@@ -381,7 +386,9 @@ function editarProducto(id) {
     document.getElementById("descripcion").value = producto.descripcion;
     document.getElementById("precio").value      = producto.precio;
     document.getElementById("stock").value       = producto.stock;
+    document.getElementById("stockMinimo").value = producto.stock_minimo;
     document.getElementById("categoria").value   = producto.categoria;
+    document.getElementById("codigoBarras").value = producto.codigo_barras || "";
 
     productoEditando = id;
 
@@ -785,3 +792,203 @@ async function cargarLogs() {
 }
 
 cargarLogs();
+
+/* ==========================
+   SCANNER
+========================== */
+
+let productoScaneado = null;
+let scannerActivo = false;
+
+function iniciarScanner() {
+
+    if (scannerActivo) return;
+
+    document.getElementById("scanner-resultado").classList.add("d-none");
+    document.getElementById("scanner-no-encontrado").classList.add("d-none");
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.getElementById("interactive"),
+            constraints: {
+                facingMode: "environment"
+            }
+        },
+        decoder: {
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "code_128_reader",
+                "code_39_reader",
+                "upc_reader"
+            ]
+        }
+    }, (err) => {
+        if (err) {
+            console.error("Error al iniciar scanner:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo acceder a la cámara."
+            });
+            return;
+        }
+        Quagga.start();
+        scannerActivo = true;
+    });
+
+    Quagga.onDetected((result) => {
+        const codigo = result.codeResult.code;
+        detenerScanner();
+        buscarProductoPorCodigo(codigo);
+    });
+}
+
+function detenerScanner() {
+    if (!scannerActivo) return;
+    Quagga.stop();
+    scannerActivo = false;
+    document.getElementById("interactive").innerHTML = "";
+}
+
+function buscarProductoPorCodigo(codigo) {
+
+    const producto = productosCache.find(p =>
+        p.codigo_barras === codigo
+    );
+
+    if (!producto) {
+        document.getElementById("scanner-no-encontrado").classList.remove("d-none");
+        document.getElementById("scanner-resultado").classList.add("d-none");
+
+        Swal.fire({
+            icon: "warning",
+            title: "Producto no encontrado",
+            text: `Código: ${codigo}`
+        });
+        return;
+    }
+
+    productoScaneado = producto;
+    mostrarResultadoScanner(producto);
+}
+
+function mostrarResultadoScanner(producto) {
+    document.getElementById("scanner-resultado").classList.remove("d-none");
+    document.getElementById("scanner-no-encontrado").classList.add("d-none");
+    document.getElementById("scanner-producto-nombre").textContent = producto.nombre;
+    document.getElementById("scanner-stock-actual").textContent = producto.stock;
+    document.getElementById("scanner-stock-minimo").textContent = producto.stock_minimo;
+}
+
+async function ajustarStock(cantidad) {
+
+    if (!productoScaneado) return;
+
+    const nuevoStock = Number(productoScaneado.stock) + cantidad;
+
+    if (nuevoStock < 0) {
+        Swal.fire({ icon: "warning", title: "El stock no puede ser negativo" });
+        return;
+    }
+
+    await actualizarStockProducto(productoScaneado, nuevoStock);
+}
+
+async function aplicarCantidad() {
+
+    if (!productoScaneado) return;
+
+    const cantidad = parseInt(document.getElementById("scanner-cantidad").value);
+
+    if (isNaN(cantidad) || cantidad < 0) {
+        Swal.fire({ icon: "warning", title: "Introduce una cantidad válida" });
+        return;
+    }
+
+    await actualizarStockProducto(productoScaneado, cantidad);
+    document.getElementById("scanner-cantidad").value = "";
+}
+
+async function actualizarStockProducto(producto, nuevoStock) {
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}?id=${producto.id}`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    nombre:        producto.nombre,
+                    descripcion:   producto.descripcion,
+                    precio:        producto.precio,
+                    stock:         nuevoStock,
+                    stock_minimo:  producto.stock_minimo,
+                    categoria:     producto.categoria
+                })
+            }
+        );
+
+        const resultado = await response.json();
+
+        if (resultado.success) {
+            productoScaneado.stock = nuevoStock;
+            document.getElementById("scanner-stock-actual").textContent = nuevoStock;
+
+            await cargarProductos();
+
+            Swal.fire({
+                icon: "success",
+                title: "Stock actualizado",
+                text: `${producto.nombre}: ${nuevoStock} unidades`,
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+
+    } catch (err) {
+        console.error("Error al actualizar stock:", err);
+        Swal.fire({ icon: "error", title: "Error al actualizar el stock" });
+    }
+}
+
+async function cargarApiKeys() {
+
+    try {
+
+        const response = await fetch(
+            "http://inventario.local/backend/api/apikeys.php",
+            { credentials: "include" }
+        );
+
+        const keys = await response.json();
+        const tbody = document.getElementById("apikeysBody");
+        tbody.innerHTML = "";
+
+        keys.forEach(k => {
+            const badgePermisos = k.permisos === 'escritura'
+                ? '<span class="badge bg-danger">Escritura</span>'
+                : '<span class="badge bg-info">Lectura</span>';
+
+            const badgeEstado = k.activa == 1
+                ? '<span class="badge bg-success">Activa</span>'
+                : '<span class="badge bg-secondary">Inactiva</span>';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${esc(k.nombre)}</td>
+                    <td><code>${esc(k.api_key)}</code></td>
+                    <td>${badgePermisos}</td>
+                    <td>${badgeEstado}</td>
+                </tr>
+            `;
+        });
+
+    } catch (err) {
+        console.error("Error al cargar API keys:", err);
+    }
+}

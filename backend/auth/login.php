@@ -54,6 +54,8 @@ if (
     $_SESSION['usuario_nombre'] = $usuario['nombre'];
     $_SESSION['usuario_rol']    = $usuario['rol'];
 
+    session_write_close();
+
     echo json_encode(['success' => true]);
 
 } else {

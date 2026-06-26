@@ -7,6 +7,7 @@ header("Content-Type: application/json");
 require_once "../config/database.php";
 require_once "../models/producto.php";
 require_once "../models/log.php";
+require_once "../services/alertas.php";
 
 $database = new Database();
 $db = $database->connect();
@@ -45,6 +46,8 @@ switch ($method) {
             );
         }
 
+        verificarStockYAlertar($db, 'InventarioAPPdemo@gmail.com');
+
         break;
 
     case 'PUT':
@@ -69,6 +72,8 @@ switch ($method) {
                 "Producto editado ID: " . $id
             );
         }
+        
+        verificarStockYAlertar($db, 'InventarioAPPdemo@gmail.com');
 
         break;
 

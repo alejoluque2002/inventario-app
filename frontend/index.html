@@ -29,6 +29,10 @@
                 <i class="ti ti-box"></i>
                 Productos
             </a>
+            <a class="nav-item" onclick="mostrarSeccion('scanner')">
+                 <i class="ti ti-barcode"></i>
+                 Scanner
+            </a>
             <a class="nav-item admin-only" onclick="mostrarSeccion('usuarios')">
                 <i class="ti ti-users"></i>
                 Usuarios
@@ -36,6 +40,10 @@
             <a class="nav-item admin-only" onclick="mostrarSeccion('actividad')">
                 <i class="ti ti-clipboard-list"></i>
                 Actividad
+            </a>
+            <a class="nav-item admin-only" onclick="mostrarSeccion('apikeys')">
+                 <i class="ti ti-key"></i>
+                 API Keys
             </a>
         </nav>
 
@@ -149,6 +157,54 @@
 
         </section>
 
+        <!-- SECCIÓN: SCANNER -->
+<section id="seccion-scanner" class="seccion d-none">
+
+    <div class="card-box">
+        <h2 class="card-box-title">Lector de código de barras</h2>
+
+        <div class="mb-3">
+            <button class="btn btn-primary" onclick="iniciarScanner()">
+                <i class="ti ti-camera"></i> Activar cámara
+            </button>
+            <button class="btn btn-secondary ms-2" onclick="detenerScanner()">
+                <i class="ti ti-camera-off"></i> Detener
+            </button>
+        </div>
+
+        <div id="scanner-container" style="width:100%; max-width:500px; position:relative;">
+            <div id="interactive" class="viewport" style="width:100%;"></div>
+        </div>
+
+        <div id="scanner-resultado" class="mt-4 d-none">
+            <h5 id="scanner-producto-nombre" class="mb-3"></h5>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-danger btn-lg" onclick="ajustarStock(-1)">
+                    <i class="ti ti-minus"></i>
+                </button>
+                <span id="scanner-stock-actual" class="fs-3 fw-bold"></span>
+                <button class="btn btn-success btn-lg" onclick="ajustarStock(1)">
+                    <i class="ti ti-plus"></i>
+                </button>
+            </div>
+            <p class="text-muted mt-2 small">Stock mínimo: <span id="scanner-stock-minimo"></span></p>
+            <div class="mt-3">
+                <label class="form-label">O introduce una cantidad exacta:</label>
+                <div class="d-flex gap-2">
+                    <input type="number" id="scanner-cantidad" class="form-control" style="max-width:120px;" placeholder="Cantidad">
+                    <button class="btn btn-primary" onclick="aplicarCantidad()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="scanner-no-encontrado" class="mt-4 d-none">
+            <p class="text-danger">Producto no encontrado en el inventario.</p>
+        </div>
+
+    </div>
+
+</section>
+
         <!-- SECCIÓN: USUARIOS -->
         <section id="seccion-usuarios" class="seccion d-none">
 
@@ -191,6 +247,23 @@
 
         </section>
 
+        <!-- SECCIÓN: API KEYS -->
+<section id="seccion-apikeys" class="seccion d-none">
+    <div class="card-box">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>API Key</th>
+                    <th>Permisos</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="apikeysBody"></tbody>
+        </table>
+    </div>
+</section>
+
     </div>
 
 </div>
@@ -209,6 +282,8 @@
                     <input type="text" id="categoria" class="form-control mb-3" placeholder="Categoría" required>
                     <input type="number" id="precio" class="form-control mb-3" placeholder="Precio" step="0.01" required>
                     <input type="number" id="stock" class="form-control mb-3" placeholder="Stock" required>
+                    <input type="number" id="stockMinimo" class="form-control mb-3" placeholder="Stock mínimo" required>
+                    <input type="text" id="codigoBarras" class="form-control mb-3" placeholder="Código de barras (opcional)">
                     <textarea id="descripcion" class="form-control mb-3" placeholder="Descripción"></textarea>
                     <button type="submit" class="btn btn-primary w-100">Guardar</button>
                 </form>
@@ -270,7 +345,8 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js?v=129"></script>
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<script src="js/app.js?v=136"></script>
 
 </body>
 </html>

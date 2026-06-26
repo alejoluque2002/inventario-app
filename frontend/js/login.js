@@ -38,8 +38,7 @@ formulario.addEventListener(
 
         if (resultado.success) {
 
-            window.location.href =
-                "index.html";
+            window.location.replace("http://inventario.local/frontend/index.html");
 
         } else {
 
