@@ -10,9 +10,7 @@ let graficaValor = null;
 let paginaActual = 1;
 let productosPorPagina = 10;
 
-/* ==========================
-   NAVEGACIÓN
-========================== */
+// Navegación
 
 const titulos = {
     dashboard:  'Dashboard',
@@ -41,9 +39,7 @@ function mostrarSeccion(nombre) {
     if (nombre === 'apikeys') cargarApiKeys();
 }
 
-/* ==========================
-   GRÁFICA
-========================== */
+// Gráfica
 
 function actualizarGrafica(productos) {
 
@@ -73,8 +69,7 @@ function actualizarGrafica(productos) {
             }]
         },
         options: {
-            responsive: true,
-
+            responsive: true
         }
     });
 
@@ -117,9 +112,7 @@ function actualizarGrafica(productos) {
     });
 }
 
-/* ==========================
-   UTILIDADES
-========================== */
+// Utilidades
 
 function esc(str) {
     const div = document.createElement("div");
@@ -127,9 +120,7 @@ function esc(str) {
     return div.innerHTML;
 }
 
-/* ==========================
-   TABLA
-========================== */
+// Tabla
 
 function badgeStock(stock, minimo) {
     stock = Number(stock);
@@ -182,8 +173,7 @@ function mostrarProductos(productos) {
     });
 
     renderPaginacion(productos, totalPaginas);
-    
-aplicarPermisos();
+    aplicarPermisos();
 }
 
 function renderPaginacion(productos, totalPaginas) {
@@ -205,9 +195,7 @@ function renderPaginacion(productos, totalPaginas) {
     }
 }
 
-/* ==========================
-   CARGAR PRODUCTOS
-========================== */
+// Productos
 
 async function cargarProductos() {
 
@@ -255,9 +243,7 @@ async function cargarProductos() {
 
 cargarProductos();
 
-/* ==========================
-   CREAR / ACTUALIZAR
-========================== */
+// Crear / Actualizar
 
 const formulario = document.getElementById("productoForm");
 
@@ -266,13 +252,13 @@ formulario.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const producto = {
-        nombre:      document.getElementById("nombre").value,
+        nombre: document.getElementById("nombre").value,
         descripcion: document.getElementById("descripcion").value,
-        precio:      parseFloat(document.getElementById("precio").value),
-        stock:       parseInt(document.getElementById("stock").value),
-        stock_minimo:  parseInt(document.getElementById("stockMinimo").value),
+        precio: parseFloat(document.getElementById("precio").value),
+        stock: parseInt(document.getElementById("stock").value),
+        stock_minimo: parseInt(document.getElementById("stockMinimo").value),
         codigo_barras: document.getElementById("codigoBarras").value || null,
-        categoria:   document.getElementById("categoria").value
+        categoria: document.getElementById("categoria").value
     };
 
     const metodo = productoEditando ? "PUT" : "POST";
@@ -324,9 +310,7 @@ formulario.addEventListener("submit", async (e) => {
     }
 });
 
-/* ==========================
-   ELIMINAR
-========================== */
+// Eliminar
 
 async function eliminarProducto(id) {
 
@@ -372,9 +356,7 @@ async function eliminarProducto(id) {
     }
 }
 
-/* ==========================
-   EDITAR
-========================== */
+// Editar
 
 function editarProducto(id) {
 
@@ -382,12 +364,12 @@ function editarProducto(id) {
     if (!producto) return;
 
     document.getElementById("modalTitulo").textContent = "Editar producto";
-    document.getElementById("nombre").value      = producto.nombre;
+    document.getElementById("nombre").value = producto.nombre;
     document.getElementById("descripcion").value = producto.descripcion;
-    document.getElementById("precio").value      = producto.precio;
-    document.getElementById("stock").value       = producto.stock;
+    document.getElementById("precio").value = producto.precio;
+    document.getElementById("stock").value = producto.stock;
     document.getElementById("stockMinimo").value = producto.stock_minimo;
-    document.getElementById("categoria").value   = producto.categoria;
+    document.getElementById("categoria").value = producto.categoria;
     document.getElementById("codigoBarras").value = producto.codigo_barras || "";
 
     productoEditando = id;
@@ -397,9 +379,7 @@ function editarProducto(id) {
     new bootstrap.Modal(document.getElementById("productoModal")).show();
 }
 
-/* ==========================
-   BUSCADOR
-========================== */
+// Buscador
 
 const buscador = document.getElementById("buscador");
 
@@ -416,9 +396,7 @@ buscador.addEventListener("input", () => {
     mostrarProductos(filtrados);
 });
 
-/* ==========================
-   ORDENAR
-========================== */
+// Ordenar
 
 function ordenarPor(campo) {
 
@@ -448,9 +426,7 @@ function ordenarPor(campo) {
     mostrarProductos(productosOrdenados);
 }
 
-/* ==========================
-   EXPORTAR
-========================== */
+// Exportar
 
 document.getElementById("btnExcel").addEventListener("click", exportarExcel);
 document.getElementById("btnPDF").addEventListener("click", exportarPDF);
@@ -458,12 +434,12 @@ document.getElementById("btnPDF").addEventListener("click", exportarPDF);
 function exportarExcel() {
 
     const datos = productosCache.map(p => ({
-        ID:          p.id,
-        Nombre:      p.nombre,
+        ID: p.id,
+        Nombre: p.nombre,
         Descripcion: p.descripcion,
-        Precio:      p.precio,
-        Stock:       p.stock,
-        Categoria:   p.categoria
+        Precio: p.precio,
+        Stock: p.stock,
+        Categoria: p.categoria
     }));
 
     const hoja  = XLSX.utils.json_to_sheet(datos);
@@ -495,9 +471,7 @@ function exportarPDF() {
     doc.save("inventario.pdf");
 }
 
-/* ==========================
-   NUEVO PRODUCTO
-========================== */
+// Nuevo producto
 
 function nuevoProducto() {
 
@@ -510,16 +484,15 @@ function nuevoProducto() {
     new bootstrap.Modal(document.getElementById("productoModal")).show();
 }
 
-/* ==========================
-   TEMA
-========================== */
+// Tema
 
 const themeBtn = document.getElementById("themeBtn");
+const themeBtnIcon = document.getElementById("themeBtnIcon");
 const temaGuardado = localStorage.getItem("tema");
 
 if (temaGuardado === "dark") {
     document.body.classList.add("dark-mode");
-    themeBtn.textContent = "☀️";
+    themeBtnIcon.className = "ti ti-sun";
 }
 
 themeBtn.addEventListener("click", () => {
@@ -529,12 +502,10 @@ themeBtn.addEventListener("click", () => {
     const oscuro = document.body.classList.contains("dark-mode");
 
     localStorage.setItem("tema", oscuro ? "dark" : "light");
-    themeBtn.textContent = oscuro ? "☀️" : "🌙";
+    themeBtnIcon.className = oscuro ? "ti ti-sun" : "ti ti-moon";
 });
 
-/* ==========================
-   FILTROS POR CATEGORÍA
-========================== */
+// Filtros por categoría
 
 function generarBotonesCategorias(productos) {
 
@@ -547,20 +518,20 @@ function generarBotonesCategorias(productos) {
         const btn = document.createElement("button");
         btn.className = "btn btn-sm btn-outline-secondary me-1 btn-categoria";
         btn.textContent = cat;
-        btn.onclick = () => filtrarCategoria(cat);
+        btn.onclick = function() { filtrarCategoria(cat, this); };
         contenedor.appendChild(btn);
     });
 }
 
-function filtrarCategoria(categoria) {
+function filtrarCategoria(categoria, btn) {
 
     document.querySelectorAll("#filtrosCategorias .btn").forEach(b => {
         b.classList.remove("btn-primary", "btn-secondary", "activo");
         b.classList.add("btn-outline-secondary");
     });
 
-    event.target.classList.remove("btn-outline-secondary");
-    event.target.classList.add("btn-secondary", "activo");
+    btn.classList.remove("btn-outline-secondary");
+    btn.classList.add("btn-secondary", "activo");
 
     if (categoria === "todas") {
         mostrarProductos(productosCache);
@@ -578,9 +549,7 @@ function aplicarPermisos() {
     }
 }
 
-/* ==========================
-   USUARIOS
-========================== */
+// Usuarios
 
 async function cargarUsuarios() {
 
@@ -624,10 +593,10 @@ document.getElementById("usuarioForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const usuario = {
-        nombre:   document.getElementById("nuevoNombre").value,
-        email:    document.getElementById("nuevoEmail").value,
+        nombre: document.getElementById("nuevoNombre").value,
+        email: document.getElementById("nuevoEmail").value,
         password: document.getElementById("nuevoPassword").value,
-        rol:      document.getElementById("nuevoRol").value
+        rol: document.getElementById("nuevoRol").value
     };
 
     try {
@@ -675,9 +644,7 @@ document.getElementById("usuarioForm").addEventListener("submit", async (e) => {
     }
 });
 
-/* ==========================
-   CAMBIO DE CONTRASEÑA
-========================== */
+// Cambio de contraseña
 
 function abrirModalPassword() {
     document.getElementById("passwordForm").reset();
@@ -748,9 +715,7 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
     }
 });
 
-/* ==========================
-   LOGS
-========================== */
+// Logs
 
 async function cargarLogs() {
 
@@ -791,11 +756,7 @@ async function cargarLogs() {
     }
 }
 
-cargarLogs();
-
-/* ==========================
-   SCANNER
-========================== */
+// Scanner
 
 let productoScaneado = null;
 let scannerActivo = false;
@@ -923,12 +884,12 @@ async function actualizarStockProducto(producto, nuevoStock) {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    nombre:        producto.nombre,
-                    descripcion:   producto.descripcion,
-                    precio:        producto.precio,
-                    stock:         nuevoStock,
-                    stock_minimo:  producto.stock_minimo,
-                    categoria:     producto.categoria
+                    nombre: producto.nombre,
+                    descripcion: producto.descripcion,
+                    precio: producto.precio,
+                    stock: nuevoStock,
+                    stock_minimo: producto.stock_minimo,
+                    categoria: producto.categoria
                 })
             }
         );

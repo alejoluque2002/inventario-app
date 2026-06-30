@@ -12,7 +12,7 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
+    
     <aside class="sidebar">
 
         <div class="sidebar-logo">
@@ -60,19 +60,19 @@
 
     </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
+    
     <div class="main">
 
-        <!-- TOPBAR -->
+        
         <div class="topbar">
             <h1 class="topbar-title" id="tituloSeccion">Dashboard</h1>
             <div class="topbar-right">
                 <span id="usuarioNombre" class="topbar-user"></span>
-                <button id="themeBtn" class="btn-icon">🌙</button>
+                <button id="themeBtn" class="btn-icon"><i class="ti ti-moon" id="themeBtnIcon"></i></button>
             </div>
         </div>
 
-        <!-- SECCIÓN: DASHBOARD -->
+        
         <section id="seccion-dashboard" class="seccion">
 
             <div class="cards-grid">
@@ -109,15 +109,15 @@
 
         </section>
 
-        <!-- SECCIÓN: PRODUCTOS -->
+        
         <section id="seccion-productos" class="seccion d-none">
 
             <div class="card-box">
 
                 <div class="section-toolbar">
-                    <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar por nombre, categoría o descripción...">
+                    <input type="text" id="buscador" class="form-control" placeholder="Buscar por nombre, categoría o descripción...">
                     <div id="filtrosCategorias" class="filtros">
-                        <button class="btn btn-sm btn-primary activo" onclick="filtrarCategoria('todas')">Todas</button>
+                        <button class="btn btn-sm btn-primary activo" onclick="filtrarCategoria('todas', this)">Todas</button>
                     </div>
                 </div>
 
@@ -157,7 +157,7 @@
 
         </section>
 
-        <!-- SECCIÓN: SCANNER -->
+        
 <section id="seccion-scanner" class="seccion d-none">
 
     <div class="card-box">
@@ -205,7 +205,7 @@
 
 </section>
 
-        <!-- SECCIÓN: USUARIOS -->
+        
         <section id="seccion-usuarios" class="seccion d-none">
 
             <div class="card-box">
@@ -228,7 +228,7 @@
 
         </section>
 
-        <!-- SECCIÓN: ACTIVIDAD -->
+        
         <section id="seccion-actividad" class="seccion d-none">
 
             <div class="card-box">
@@ -247,7 +247,7 @@
 
         </section>
 
-        <!-- SECCIÓN: API KEYS -->
+        
 <section id="seccion-apikeys" class="seccion d-none">
     <div class="card-box">
         <table class="table table-striped">
@@ -268,7 +268,7 @@
 
 </div>
 
-<!-- MODAL PRODUCTO -->
+
 <div class="modal fade" id="productoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -292,7 +292,7 @@
     </div>
 </div>
 
-<!-- MODAL USUARIO -->
+
 <div class="modal fade" id="usuarioModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -316,7 +316,7 @@
     </div>
 </div>
 
-<!-- MODAL CONTRASEÑA -->
+
 <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
