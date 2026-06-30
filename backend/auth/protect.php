@@ -16,3 +16,5 @@ if (!isset($_SESSION['usuario_id'])) {
 
     exit;
 }
+
+session_write_close();
