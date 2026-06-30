@@ -2,6 +2,36 @@
 
 Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScript vanilla. Proyecto de portfolio desarrollado tras finalizar el Grado Superior de Desarrollo de Aplicaciones Web (DAW).
 
+## Capturas
+
+**Dashboard**
+
+![Dashboard](docs/Capturas/dashboard.png)
+
+**Gestión de productos**
+
+![Productos](docs/Capturas/productos.png)
+
+**Inicio de sesión**
+
+![Login](docs/Capturas/login.png)
+
+**Gestión de usuarios**
+
+![Usuarios](docs/Capturas/usuarios.png)
+
+**Registro de actividad**
+
+![Actividad](docs/Capturas/actividad.png)
+
+**API Keys**
+
+![API Keys](docs/Capturas/apikeys.png)
+
+**Lector de código de barras**
+
+![Scanner](docs/Capturas/scanner.png)
+
 ---
 
 ## Características
