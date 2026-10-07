@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Sintaxis PHP (sin PHPMailer)
+        run: |
+          find backend database -name '*.php' -not -path '*/libs/*' -print0 \
+            | xargs -0 -n1 php -l
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sintaxis JavaScript
+        run: |
+          for f in frontend/js/*.js; do node --check "$f"; done
+
+      - name: Comprobar que no hay secretos en el repositorio
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$|backend/config/mail\.php$'; then
+            echo "Hay ficheros con secretos versionados"; exit 1
+          fi

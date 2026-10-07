@@ -1,6 +1,21 @@
-.vscode/
+# Entorno / secretos
 .env
+.env.*
+!.env.example
+backend/config/mail.php
+
+# Editor / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dependencias y logs
+vendor/
+node_modules/
+*.log
+
+# Ficheros de prueba locales
 test.php
 backend/test_password.php
 backend/api/test_connection.php
-backend/config/mail.php
