@@ -1,0 +1,23 @@
+# Protección básica cuando el DocumentRoot es la raíz del proyecto (XAMPP / htdocs).
+# Requiere mod_authz_core (Apache 2.4) y AllowOverride habilitado.
+
+# Nunca servir ficheros ocultos (.env, .git, .gitignore...)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>
+
+# Ni el repositorio git entero
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*/)?\.git/ - [F,L]
+</IfModule>
+
+# Cabeceras de seguridad (si mod_headers está activo)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+</IfModule>
