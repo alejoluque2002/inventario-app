@@ -1,18 +1,12 @@
-const logoutBtn =
-    document.getElementById("logoutBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-logoutBtn.addEventListener(
-    "click",
-    async () => {
+logoutBtn.addEventListener("click", async () => {
 
-        await fetch(
-            "http://inventario.local/backend/auth/logout.php",
-            {
-                credentials: "include"
-            }
-        );
-
-        window.location.href =
-            "login.html";
+    try {
+        await apiFetch(`${BASE_URL}/backend/auth/logout.php`, { method: "POST" });
+    } catch (err) {
+        console.error("Error al cerrar sesión:", err);
     }
-);
+
+    window.location.href = "login.html";
+});

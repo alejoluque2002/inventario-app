@@ -21,27 +21,27 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a class="nav-item active" onclick="mostrarSeccion('dashboard')">
+            <a class="nav-item active" data-seccion="dashboard" onclick="mostrarSeccion('dashboard')">
                 <i class="ti ti-layout-dashboard"></i>
                 Dashboard
             </a>
-            <a class="nav-item" onclick="mostrarSeccion('productos')">
+            <a class="nav-item" data-seccion="productos" onclick="mostrarSeccion('productos')">
                 <i class="ti ti-box"></i>
                 Productos
             </a>
-            <a class="nav-item" onclick="mostrarSeccion('scanner')">
+            <a class="nav-item" data-seccion="scanner" onclick="mostrarSeccion('scanner')">
                  <i class="ti ti-barcode"></i>
                  Scanner
             </a>
-            <a class="nav-item admin-only" onclick="mostrarSeccion('usuarios')">
+            <a class="nav-item admin-only" data-seccion="usuarios" onclick="mostrarSeccion('usuarios')">
                 <i class="ti ti-users"></i>
                 Usuarios
             </a>
-            <a class="nav-item admin-only" onclick="mostrarSeccion('actividad')">
+            <a class="nav-item admin-only" data-seccion="actividad" onclick="mostrarSeccion('actividad')">
                 <i class="ti ti-clipboard-list"></i>
                 Actividad
             </a>
-            <a class="nav-item admin-only" onclick="mostrarSeccion('apikeys')">
+            <a class="nav-item admin-only" data-seccion="apikeys" onclick="mostrarSeccion('apikeys')">
                  <i class="ti ti-key"></i>
                  API Keys
             </a>
@@ -144,7 +144,7 @@
                                 <th style="cursor:pointer" onclick="ordenarPor('precio')">Precio ↕</th>
                                 <th style="cursor:pointer" onclick="ordenarPor('stock')">Stock ↕</th>
                                 <th>Categoría</th>
-                                <th>Acciones</th>
+                                <th class="admin-only">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="productosBody"></tbody>
@@ -336,17 +336,17 @@
     </div>
 </div>
 
-<script src="js/auth.js"></script>
-<script src="js/user.js"></script>
-<script src="js/logout.js"></script>
+<script src="js/config.js?v=2"></script>
+<script src="js/auth.js?v=4"></script>
+<script src="js/logout.js?v=2"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
-<script src="js/app.js?v=139"></script>
+<script src="js/app.js?v=141"></script>
 
 </body>
 </html>

@@ -1,5 +1,4 @@
-const API_URL =
-    "http://inventario.local/backend/api/productos.php";
+const API_URL = `${BASE_URL}/backend/api/productos.php`;
 
 let productoEditando = null;
 let productosCache = [];
@@ -9,12 +8,15 @@ let grafica = null;
 let graficaValor = null;
 let paginaActual = 1;
 let productosPorPagina = 10;
+let textoBusqueda = "";
+let categoriaActiva = "todas";
 
 // Navegación
 
 const titulos = {
     dashboard:  'Dashboard',
     productos:  'Productos',
+    scanner:    'Scanner',
     usuarios:   'Usuarios',
     actividad:  'Registro de actividad',
     apikeys:    'API Keys'
@@ -29,10 +31,13 @@ function mostrarSeccion(nombre) {
     document.getElementById('tituloSeccion').textContent = titulos[nombre];
 
     document.querySelectorAll('.nav-item').forEach(n => {
-        if (n.getAttribute('onclick') === `mostrarSeccion('${nombre}')`) {
+        if (n.dataset.seccion === nombre) {
             n.classList.add('active');
         }
     });
+
+    // La cámara no debe seguir encendida al salir de la sección
+    if (nombre !== 'scanner') detenerScanner();
 
     if (nombre === 'actividad') cargarLogs();
     if (nombre === 'usuarios') cargarUsuarios();
@@ -143,20 +148,19 @@ function mostrarProductos(productos) {
     tbody.innerHTML = "";
 
     const totalPaginas = Math.ceil(productos.length / productosPorPagina);
+    if (paginaActual > totalPaginas) paginaActual = Math.max(1, totalPaginas);
     const inicio = (paginaActual - 1) * productosPorPagina;
     const fin = inicio + productosPorPagina;
     const productosPagina = productos.slice(inicio, fin);
 
-    productosPagina.forEach(producto => {
-
-        tbody.innerHTML += `
+    tbody.innerHTML = productosPagina.map(producto => `
             <tr>
                 <td>${esc(producto.id)}</td>
                 <td>${esc(producto.nombre)}</td>
                 <td>${esc(producto.precio)}</td>
                 <td>${badgeStock(producto.stock, producto.stock_minimo)}</td>
                 <td>${esc(producto.categoria)}</td>
-                <td>
+                <td class="admin-only">
                     <button
                         class="btn btn-warning btn-sm me-2"
                         onclick="editarProducto(${Number(producto.id)})">
@@ -169,11 +173,42 @@ function mostrarProductos(productos) {
                     </button>
                 </td>
             </tr>
-        `;
-    });
+        `).join("");
 
     renderPaginacion(productos, totalPaginas);
     aplicarPermisos();
+}
+
+// Vista: combina búsqueda, categoría y orden sobre la caché de productos
+function aplicarVista() {
+
+    const texto = textoBusqueda.toLowerCase();
+
+    const lista = productosCache.filter(p =>
+        (categoriaActiva === "todas" || p.categoria === categoriaActiva) &&
+        (
+            texto === "" ||
+            (p.nombre || "").toLowerCase().includes(texto) ||
+            (p.categoria || "").toLowerCase().includes(texto) ||
+            (p.descripcion || "").toLowerCase().includes(texto)
+        )
+    );
+
+    if (campoOrden) {
+        lista.sort((a, b) => {
+            const numerico = campoOrden === "precio" || campoOrden === "stock";
+
+            const comparacion = numerico
+                ? Number(a[campoOrden]) - Number(b[campoOrden])
+                : String(a[campoOrden] ?? "").localeCompare(
+                    String(b[campoOrden] ?? ""), "es", { sensitivity: "base" }
+                );
+
+            return ordenAscendente ? comparacion : -comparacion;
+        });
+    }
+
+    mostrarProductos(lista);
 }
 
 function renderPaginacion(productos, totalPaginas) {
@@ -197,13 +232,25 @@ function renderPaginacion(productos, totalPaginas) {
 
 // Productos
 
+// Lee la respuesta JSON y lanza un error (con el mensaje del servidor) si falla
+async function leerRespuesta(response) {
+
+    const resultado = await response.json().catch(() => ({}));
+
+    if (!response.ok || resultado.success === false) {
+        const error = new Error("Error " + response.status);
+        error.mensajeServidor = resultado.message;
+        throw error;
+    }
+
+    return resultado;
+}
+
 async function cargarProductos() {
 
     try {
 
-        const response = await fetch(API_URL, {
-            credentials: "include"
-        });
+        const response = await apiFetch(API_URL);
 
         if (!response.ok) throw new Error("Error " + response.status);
 
@@ -227,9 +274,9 @@ async function cargarProductos() {
 
         productosCache = productos;
 
-        mostrarProductos(productos);
-        actualizarGrafica(productos);
         generarBotonesCategorias(productos);
+        aplicarVista();
+        actualizarGrafica(productos);
 
     } catch (err) {
         console.error("Error al cargar productos:", err);
@@ -265,19 +312,16 @@ formulario.addEventListener("submit", async (e) => {
 
     try {
 
-        const response = await fetch(
+        const response = await apiFetch(
             productoEditando ? `${API_URL}?id=${productoEditando}` : API_URL,
             {
                 method: metodo,
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify(producto)
             }
         );
 
-        if (!response.ok) throw new Error("Error " + response.status);
-
-        const resultado = await response.json();
+        const resultado = await leerRespuesta(response);
 
         if (resultado.success) {
 
@@ -305,7 +349,7 @@ formulario.addEventListener("submit", async (e) => {
         Swal.fire({
             icon: "error",
             title: "Error al guardar",
-            text: "No se pudo guardar el producto. Inténtalo de nuevo."
+            text: err.mensajeServidor || "No se pudo guardar el producto. Inténtalo de nuevo."
         });
     }
 });
@@ -327,14 +371,11 @@ async function eliminarProducto(id) {
 
     try {
 
-        const response = await fetch(`${API_URL}?id=${id}`, {
-            method: "DELETE",
-            credentials: "include"
+        const response = await apiFetch(`${API_URL}?id=${id}`, {
+            method: "DELETE"
         });
 
-        if (!response.ok) throw new Error("Error " + response.status);
-
-        const resultado = await response.json();
+        const resultado = await leerRespuesta(response);
 
         if (resultado.success) {
             cargarProductos();
@@ -351,7 +392,7 @@ async function eliminarProducto(id) {
         Swal.fire({
             icon: "error",
             title: "Error al eliminar",
-            text: "No se pudo eliminar el producto. Inténtalo de nuevo."
+            text: err.mensajeServidor || "No se pudo eliminar el producto. Inténtalo de nuevo."
         });
     }
 }
@@ -385,15 +426,9 @@ const buscador = document.getElementById("buscador");
 
 buscador.addEventListener("input", () => {
 
-    const texto = buscador.value.toLowerCase();
-
-    const filtrados = productosCache.filter(p =>
-        p.nombre.toLowerCase().includes(texto) ||
-        p.categoria.toLowerCase().includes(texto) ||
-        p.descripcion.toLowerCase().includes(texto)
-    );
-
-    mostrarProductos(filtrados);
+    textoBusqueda = buscador.value;
+    paginaActual = 1;
+    aplicarVista();
 });
 
 // Ordenar
@@ -407,23 +442,8 @@ function ordenarPor(campo) {
         ordenAscendente = true;
     }
 
-    const productosOrdenados = [...productosCache];
-
-    productosOrdenados.sort((a, b) => {
-        let valorA = a[campo];
-        let valorB = b[campo];
-
-        if (campo === "precio" || campo === "stock") {
-            valorA = Number(valorA);
-            valorB = Number(valorB);
-        }
-
-        if (valorA < valorB) return ordenAscendente ? -1 : 1;
-        if (valorA > valorB) return ordenAscendente ? 1 : -1;
-        return 0;
-    });
-
-    mostrarProductos(productosOrdenados);
+    paginaActual = 1;
+    aplicarVista();
 }
 
 // Exportar
@@ -439,6 +459,8 @@ function exportarExcel() {
         Descripcion: p.descripcion,
         Precio: p.precio,
         Stock: p.stock,
+        Stock_minimo: p.stock_minimo,
+        Codigo_barras: p.codigo_barras || "",
         Categoria: p.categoria
     }));
 
@@ -507,6 +529,17 @@ themeBtn.addEventListener("click", () => {
 
 // Filtros por categoría
 
+function marcarBotonCategoria(btn) {
+
+    document.querySelectorAll("#filtrosCategorias .btn").forEach(b => {
+        b.classList.remove("btn-primary", "btn-secondary", "activo");
+        b.classList.add("btn-outline-secondary");
+    });
+
+    btn.classList.remove("btn-outline-secondary");
+    btn.classList.add("btn-secondary", "activo");
+}
+
 function generarBotonesCategorias(productos) {
 
     const categorias = [...new Set(productos.map(p => p.categoria))];
@@ -521,32 +554,34 @@ function generarBotonesCategorias(productos) {
         btn.onclick = function() { filtrarCategoria(cat, this); };
         contenedor.appendChild(btn);
     });
+
+    // Mantener la categoría seleccionada tras recargar (o volver a "Todas" si ya no existe)
+    if (categoriaActiva !== "todas") {
+        const btnActivo = [...contenedor.querySelectorAll(".btn-categoria")]
+            .find(b => b.textContent === categoriaActiva);
+
+        if (btnActivo) {
+            marcarBotonCategoria(btnActivo);
+        } else {
+            categoriaActiva = "todas";
+            marcarBotonCategoria(contenedor.querySelector(".btn:not(.btn-categoria)"));
+        }
+    }
 }
 
 function filtrarCategoria(categoria, btn) {
 
-    document.querySelectorAll("#filtrosCategorias .btn").forEach(b => {
-        b.classList.remove("btn-primary", "btn-secondary", "activo");
-        b.classList.add("btn-outline-secondary");
-    });
+    marcarBotonCategoria(btn);
 
-    btn.classList.remove("btn-outline-secondary");
-    btn.classList.add("btn-secondary", "activo");
-
-    if (categoria === "todas") {
-        mostrarProductos(productosCache);
-    } else {
-        const filtrados = productosCache.filter(p => p.categoria === categoria);
-        mostrarProductos(filtrados);
-    }
+    categoriaActiva = categoria;
+    paginaActual = 1;
+    aplicarVista();
 }
 
 function aplicarPermisos() {
-    if (rolUsuario === 'empleado') {
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = 'none';
-        });
-    }
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.display = rolUsuario === 'empleado' ? 'none' : '';
+    });
 }
 
 // Usuarios
@@ -555,28 +590,28 @@ async function cargarUsuarios() {
 
     try {
 
-        const response = await fetch(
-            "http://inventario.local/backend/api/usuarios.php",
-            { credentials: "include" }
+        const response = await apiFetch(
+            `${BASE_URL}/backend/api/usuarios.php`,
+            {}
         );
 
         const usuarios = await response.json();
         const tbody = document.getElementById("usuariosBody");
         tbody.innerHTML = "";
 
-        usuarios.forEach(u => {
+        tbody.innerHTML = usuarios.map(u => {
             const badgeRol = u.rol === 'admin'
                 ? '<span class="badge bg-primary">Admin</span>'
                 : '<span class="badge bg-secondary">Empleado</span>';
 
-            tbody.innerHTML += `
+            return `
                 <tr>
                     <td>${esc(u.nombre)}</td>
                     <td>${esc(u.email)}</td>
                     <td>${badgeRol}</td>
                 </tr>
             `;
-        });
+        }).join("");
 
     } catch (err) {
         console.error("Error al cargar usuarios:", err);
@@ -601,12 +636,11 @@ document.getElementById("usuarioForm").addEventListener("submit", async (e) => {
 
     try {
 
-        const response = await fetch(
-            "http://inventario.local/backend/auth/register.php",
+        const response = await apiFetch(
+            `${BASE_URL}/backend/auth/register.php`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify(usuario)
             }
         );
@@ -669,12 +703,11 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
 
     try {
 
-        const response = await fetch(
-            "http://inventario.local/backend/auth/change_password.php",
+        const response = await apiFetch(
+            `${BASE_URL}/backend/auth/change_password.php`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({
                     password_actual: document.getElementById("passwordActual").value,
                     password_nuevo:  passwordNuevo
@@ -721,9 +754,9 @@ async function cargarLogs() {
 
     try {
 
-        const response = await fetch(
-            "http://inventario.local/backend/api/logs.php",
-            { credentials: "include" }
+        const response = await apiFetch(
+            `${BASE_URL}/backend/api/logs.php`,
+            {}
         );
 
         if (!response.ok) return;
@@ -733,7 +766,7 @@ async function cargarLogs() {
         const tbody = document.getElementById("logsBody");
         tbody.innerHTML = "";
 
-        logs.forEach(log => {
+        tbody.innerHTML = logs.map(log => {
             const fecha = new Date(log.created_at).toLocaleString('es-ES');
             const colorAccion = {
                 'CREAR':    'text-success',
@@ -741,7 +774,7 @@ async function cargarLogs() {
                 'ELIMINAR': 'text-danger'
             }[log.accion] || '';
 
-            tbody.innerHTML += `
+            return `
                 <tr>
                     <td>${esc(fecha)}</td>
                     <td>${esc(log.usuario_nombre)}</td>
@@ -749,7 +782,7 @@ async function cargarLogs() {
                     <td>${esc(log.detalle)}</td>
                 </tr>
             `;
-        });
+        }).join("");
 
     } catch (err) {
         console.error("Error al cargar logs:", err);
@@ -767,6 +800,10 @@ function iniciarScanner() {
 
     document.getElementById("scanner-resultado").classList.add("d-none");
     document.getElementById("scanner-no-encontrado").classList.add("d-none");
+
+    // Evitar acumular manejadores si se activa la cámara varias veces
+    if (typeof Quagga.offDetected === "function") Quagga.offDetected(onCodigoDetectado);
+    Quagga.onDetected(onCodigoDetectado);
 
     Quagga.init({
         inputStream: {
@@ -799,12 +836,12 @@ function iniciarScanner() {
         Quagga.start();
         scannerActivo = true;
     });
+}
 
-    Quagga.onDetected((result) => {
-        const codigo = result.codeResult.code;
-        detenerScanner();
-        buscarProductoPorCodigo(codigo);
-    });
+function onCodigoDetectado(result) {
+    const codigo = result.codeResult.code;
+    detenerScanner();
+    buscarProductoPorCodigo(codigo);
 }
 
 function detenerScanner() {
@@ -848,14 +885,12 @@ async function ajustarStock(cantidad) {
 
     if (!productoScaneado) return;
 
-    const nuevoStock = Number(productoScaneado.stock) + cantidad;
-
-    if (nuevoStock < 0) {
+    if (Number(productoScaneado.stock) + cantidad < 0) {
         Swal.fire({ icon: "warning", title: "El stock no puede ser negativo" });
         return;
     }
 
-    await actualizarStockProducto(productoScaneado, nuevoStock);
+    await actualizarStockProducto(productoScaneado, { delta: cantidad });
 }
 
 async function aplicarCantidad() {
@@ -869,43 +904,37 @@ async function aplicarCantidad() {
         return;
     }
 
-    await actualizarStockProducto(productoScaneado, cantidad);
+    await actualizarStockProducto(productoScaneado, { stock: cantidad });
     document.getElementById("scanner-cantidad").value = "";
 }
 
-async function actualizarStockProducto(producto, nuevoStock) {
+// Solo se envía el cambio de stock (delta o valor exacto): el resto del producto
+// (incluido el código de barras) no se toca. El servidor devuelve el stock final.
+async function actualizarStockProducto(producto, cambio) {
 
     try {
 
-        const response = await fetch(
+        const response = await apiFetch(
             `${API_URL}?id=${producto.id}`,
             {
-                method: "PUT",
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    nombre: producto.nombre,
-                    descripcion: producto.descripcion,
-                    precio: producto.precio,
-                    stock: nuevoStock,
-                    stock_minimo: producto.stock_minimo,
-                    categoria: producto.categoria
-                })
+                body: JSON.stringify(cambio)
             }
         );
 
-        const resultado = await response.json();
+        const resultado = await leerRespuesta(response);
 
         if (resultado.success) {
-            productoScaneado.stock = nuevoStock;
-            document.getElementById("scanner-stock-actual").textContent = nuevoStock;
+            productoScaneado.stock = resultado.stock;
+            document.getElementById("scanner-stock-actual").textContent = resultado.stock;
 
             await cargarProductos();
 
             Swal.fire({
                 icon: "success",
                 title: "Stock actualizado",
-                text: `${producto.nombre}: ${nuevoStock} unidades`,
+                text: `${producto.nombre}: ${resultado.stock} unidades`,
                 showConfirmButton: false,
                 timer: 1500
             });
@@ -913,7 +942,11 @@ async function actualizarStockProducto(producto, nuevoStock) {
 
     } catch (err) {
         console.error("Error al actualizar stock:", err);
-        Swal.fire({ icon: "error", title: "Error al actualizar el stock" });
+        Swal.fire({
+            icon: "error",
+            title: "Error al actualizar el stock",
+            text: err.mensajeServidor || ""
+        });
     }
 }
 
@@ -921,16 +954,16 @@ async function cargarApiKeys() {
 
     try {
 
-        const response = await fetch(
-            "http://inventario.local/backend/api/apikeys.php",
-            { credentials: "include" }
+        const response = await apiFetch(
+            `${BASE_URL}/backend/api/apikeys.php`,
+            {}
         );
 
         const keys = await response.json();
         const tbody = document.getElementById("apikeysBody");
         tbody.innerHTML = "";
 
-        keys.forEach(k => {
+        tbody.innerHTML = keys.map(k => {
             const badgePermisos = k.permisos === 'escritura'
                 ? '<span class="badge bg-danger">Escritura</span>'
                 : '<span class="badge bg-info">Lectura</span>';
@@ -939,7 +972,7 @@ async function cargarApiKeys() {
                 ? '<span class="badge bg-success">Activa</span>'
                 : '<span class="badge bg-secondary">Inactiva</span>';
 
-            tbody.innerHTML += `
+            return `
                 <tr>
                     <td>${esc(k.nombre)}</td>
                     <td><code>${esc(k.api_key)}</code></td>
@@ -947,7 +980,7 @@ async function cargarApiKeys() {
                     <td>${badgeEstado}</td>
                 </tr>
             `;
-        });
+        }).join("");
 
     } catch (err) {
         console.error("Error al cargar API keys:", err);
