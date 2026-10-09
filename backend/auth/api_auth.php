@@ -1,11 +1,26 @@
 <?php
 
+require_once __DIR__ . '/../config/database.php';
+
+/**
+ * Valida la API key de la petición y devuelve sus datos.
+ * Recomendado: cabecera "X-API-Key". También se admite ?api_key= por
+ * compatibilidad, pero las URLs acaban en logs, así que es menos seguro.
+ */
 function autenticarApiKey($permisoRequerido = 'lectura')
 {
-    $headers = getallheaders();
-    $apiKey = $headers['X-API-Key'] ?? $_GET['api_key'] ?? null;
+    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? null;
+
+    if (!$apiKey && function_exists('getallheaders')) {
+        $headers = array_change_key_case(getallheaders(), CASE_LOWER);
+        $apiKey = $headers['x-api-key'] ?? null;
+    }
 
     if (!$apiKey) {
+        $apiKey = $_GET['api_key'] ?? null;
+    }
+
+    if (!$apiKey || !is_string($apiKey)) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -14,7 +29,6 @@ function autenticarApiKey($permisoRequerido = 'lectura')
         exit;
     }
 
-    require_once __DIR__ . '/../config/database.php';
     $database = new Database();
     $db = $database->connect();
 

@@ -1,8 +1,9 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/session.php';
+require_once __DIR__ . '/../config/database.php';
+
+iniciarSesion();
 
 header("Content-Type: application/json");
 
@@ -12,7 +13,12 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-require_once "../config/database.php";
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    responderJson(405, ['success' => false, 'message' => 'Método no permitido']);
+    exit;
+}
+
+exigirPeticionAjax();
 
 $database = new Database();
 $db = $database->connect();
@@ -20,12 +26,19 @@ $db = $database->connect();
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (
-    !$data ||
-    empty($data['password_actual']) ||
-    empty($data['password_nuevo'])
+    !is_array($data) ||
+    empty($data['password_actual']) || !is_string($data['password_actual']) ||
+    empty($data['password_nuevo']) || !is_string($data['password_nuevo'])
 ) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Todos los campos son requeridos']);
+    exit;
+}
+
+// bcrypt solo usa los primeros 72 bytes
+if (strlen($data['password_nuevo']) < 8 || strlen($data['password_nuevo']) > 72) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'La nueva contraseña debe tener entre 8 y 72 caracteres']);
     exit;
 }
 
@@ -34,7 +47,7 @@ $stmt = $db->prepare("SELECT password FROM usuarios WHERE id = :id");
 $stmt->execute([':id' => $_SESSION['usuario_id']]);
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!password_verify($data['password_actual'], $usuario['password'])) {
+if (!$usuario || !password_verify($data['password_actual'], $usuario['password'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'La contraseña actual no es correcta']);
     exit;
@@ -47,5 +60,10 @@ $resultado = $stmt->execute([
     ':password' => $hash,
     ':id'       => $_SESSION['usuario_id']
 ]);
+
+if ($resultado) {
+    // Nuevo identificador de sesión tras un cambio de credenciales
+    session_regenerate_id(true);
+}
 
 echo json_encode(['success' => $resultado]);

@@ -9,15 +9,13 @@ Todas las peticiones requieren una API key. Se puede enviar de dos formas:
 Header recomendado:
 X-API-Key: tu_api_key
 
-Query parameter:
+Query parameter (compatibilidad; desaconsejado porque las URLs acaban en logs):
 ?api_key=tu_api_key
 
-## API Keys de ejemplo
+## Obtener una API key
 
-| Key | Permisos |
-|-----|----------|
-| key_lectura_demo_inventario_2024 | Lectura (GET) |
-| key_escritura_demo_inventario_2024 | Lectura y escritura |
+Las claves se crean desde SQL (ver README principal) y se listan en la sección "API Keys" de la aplicación (solo admin).
+Cada clave tiene permisos `lectura` o `escritura`.
 
 ## Base URL
 
@@ -37,8 +35,9 @@ DELETE /productos.php?id=1 — Eliminar un producto (escritura)
 |--------|-------------|
 | 200 | OK |
 | 201 | Creado correctamente |
-| 400 | Datos inválidos |
+| 400 | Datos inválidos (el campo `error` indica el motivo) |
 | 401 | API key requerida o inválida |
 | 403 | Sin permisos de escritura |
 | 404 | Producto no encontrado |
 | 405 | Método no permitido |
+| 409 | Conflicto (p. ej. código de barras duplicado) |

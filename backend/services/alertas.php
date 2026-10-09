@@ -1,7 +1,12 @@
 <?php
 
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/mail.php';
+require_once __DIR__ . '/mailer.php';
+
+function escaparHtml($texto)
+{
+    return htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
+}
 
 function verificarStockYAlertar($db, $adminEmail)
 {
@@ -47,8 +52,8 @@ function verificarStockYAlertar($db, $adminEmail)
         foreach ($productosAgotados as $p) {
             $cuerpo .= "
                 <tr>
-                    <td>{$p['nombre']}</td>
-                    <td>{$p['categoria']}</td>
+                    <td>" . escaparHtml($p['nombre']) . "</td>
+                    <td>" . escaparHtml($p['categoria']) . "</td>
                 </tr>
             ";
         }
@@ -72,10 +77,10 @@ function verificarStockYAlertar($db, $adminEmail)
         foreach ($productosAlerta as $p) {
             $cuerpo .= "
                 <tr>
-                    <td>{$p['nombre']}</td>
-                    <td>{$p['categoria']}</td>
-                    <td>{$p['stock']}</td>
-                    <td>{$p['stock_minimo']}</td>
+                    <td>" . escaparHtml($p['nombre']) . "</td>
+                    <td>" . escaparHtml($p['categoria']) . "</td>
+                    <td>" . escaparHtml($p['stock']) . "</td>
+                    <td>" . escaparHtml($p['stock_minimo']) . "</td>
                 </tr>
             ";
         }
@@ -94,4 +99,14 @@ function verificarStockYAlertar($db, $adminEmail)
         'Alerta de stock - Gestor de Inventario',
         $cuerpo
     );
+}
+
+/**
+ * Destinatario de las alertas: ALERT_EMAIL del .env o, si no está definido, MAIL_USER.
+ */
+function destinatarioAlertas()
+{
+    $destino = (string) env('ALERT_EMAIL', '');
+
+    return $destino !== '' ? $destino : (string) env('MAIL_USER', '');
 }
