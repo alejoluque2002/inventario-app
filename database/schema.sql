@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS logs (
     id             INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id     INT NULL,
     usuario_nombre VARCHAR(100) NOT NULL,
-    accion         VARCHAR(20) NOT NULL,
+    accion         VARCHAR(50) NOT NULL,
     detalle        TEXT,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     KEY idx_logs_created_at (created_at)

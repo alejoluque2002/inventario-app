@@ -22,6 +22,9 @@ ALTER TABLE productos ADD UNIQUE KEY uq_productos_codigo_barras (codigo_barras);
 ALTER TABLE productos ADD KEY idx_productos_categoria (categoria);
 ALTER TABLE logs ADD KEY idx_logs_created_at (created_at);
 
+-- 4b) El registro de actividad admite acciones hechas por API key (sin usuario)
+ALTER TABLE logs MODIFY usuario_id INT(11) NULL;
+
 -- 5) (Recomendado) Rotar las API keys de demostración que aparecían en el README
 --    y generar claves aleatorias nuevas:
 UPDATE api_keys
