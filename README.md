@@ -51,6 +51,7 @@ Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScri
 - API REST pública con autenticación por API key (permisos de lectura y escritura)
 - Panel de consulta de API keys (solo administrador)
 - Registro de actividad — logs de creación, edición y eliminación con usuario y fecha
+- Historial de movimientos de stock — cada alta, entrada, salida y baja con usuario, origen (web, scanner o API) y valores antes y después (solo administrador)
 - Registro de nuevos usuarios desde la aplicación (solo administrador)
 - Cambio de contraseña
 - Exportación a Excel y PDF
@@ -106,7 +107,7 @@ Abre phpMyAdmin e importa el script (crea la base de datos `inventario_db` y las
 database/schema.sql
 ```
 
-> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica `database/migrations/001_endurecer_esquema.sql`.
+> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica en orden las migraciones de `database/migrations/` (`001_endurecer_esquema.sql`, `002_movimientos_stock.sql`).
 
 **4. Configurar el entorno (`.env`)**
 
@@ -237,6 +238,7 @@ inventario-app/
 │   │   ├── productos.php
 │   │   ├── usuarios.php
 │   │   ├── logs.php
+│   │   ├── movimientos.php
 │   │   └── apikeys.php
 │   ├── auth/
 │   │   ├── login.php
@@ -253,7 +255,8 @@ inventario-app/
 │   │   └── database.php
 │   ├── models/
 │   │   ├── producto.php
-│   │   └── log.php
+│   │   ├── log.php
+│   │   └── movimiento.php
 │   ├── services/
 │   │   ├── alertas.php
 │   │   └── mailer.php
@@ -284,6 +287,7 @@ inventario-app/
 - Errores internos registrados en el log del servidor; el cliente solo recibe un mensaje genérico
 - `.htaccess` que bloquea el acceso web a `.env`, `.git` y a `config/`, `models/`, `services/` y `libs/`
 - Registro de actividad también para las escrituras hechas con API key
+- Historial de movimientos de stock (quién, cuándo, origen y valores antes y después), también para los cambios hechos con API key
 
 **Limitaciones conocidas / siguiente paso**
 

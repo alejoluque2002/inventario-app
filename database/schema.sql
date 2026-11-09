@@ -80,6 +80,28 @@ CREATE TABLE IF NOT EXISTS api_keys (
 );
 
 -- ============================================
+-- Tabla: movimientos_stock (historial de cambios de stock)
+-- producto_id y usuario_id son NULL cuando el producto se ha borrado
+-- o el cambio lo hizo una API key
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS movimientos_stock (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    producto_id     INT NULL,
+    producto_nombre VARCHAR(150) NOT NULL,
+    usuario_id      INT NULL,
+    usuario_nombre  VARCHAR(100) NOT NULL,
+    tipo            ENUM('alta', 'entrada', 'salida', 'baja') NOT NULL,
+    origen          ENUM('web', 'scanner', 'api') NOT NULL DEFAULT 'web',
+    stock_anterior  INT NOT NULL,
+    stock_nuevo     INT NOT NULL,
+    diferencia      INT NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_mov_producto (producto_id, created_at),
+    KEY idx_mov_created (created_at)
+);
+
+-- ============================================
 -- Productos de ejemplo
 -- ============================================
 
