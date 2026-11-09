@@ -7,6 +7,7 @@ header("Content-Type: application/json");
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/producto.php';
 require_once __DIR__ . '/../models/log.php';
+require_once __DIR__ . '/../models/movimiento.php';
 require_once __DIR__ . '/../services/alertas.php';
 
 $database = new Database();
@@ -14,6 +15,7 @@ $db = $database->connect();
 
 $producto = new Producto($db);
 $log = new Log($db);
+$movimientos = new MovimientoStock($db);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $esAdmin = ($_SESSION['usuario_rol'] ?? '') === 'admin';
@@ -30,6 +32,25 @@ function registrarActividad($log, $accion, $detalle)
         );
     } catch (Throwable $e) {
         error_log("No se pudo registrar la actividad: " . $e->getMessage());
+    }
+}
+
+/** Registra un movimiento de stock sin que un fallo rompa la operación ya realizada */
+function registrarMovimiento($movimientos, $productoId, $nombre, $origen, $anterior, $nuevo, $tipo = null)
+{
+    try {
+        $movimientos->registrar(
+            $productoId,
+            $nombre,
+            $_SESSION['usuario_id'],
+            $_SESSION['usuario_nombre'],
+            $origen,
+            $anterior,
+            $nuevo,
+            $tipo
+        );
+    } catch (Throwable $e) {
+        error_log("No se pudo registrar el movimiento de stock: " . $e->getMessage());
     }
 }
 
@@ -110,7 +131,11 @@ switch ($method) {
             break;
         }
 
+        $nuevoId = (int) $db->lastInsertId();
+
         registrarActividad($log, 'CREAR', "Producto creado: " . trim($data['nombre']));
+
+        registrarMovimiento($movimientos, $nuevoId, trim($data['nombre']), 'web', 0, (int) $data['stock'], 'alta');
 
         responderJson(200, ["success" => true], true);
 
@@ -158,6 +183,8 @@ switch ($method) {
         }
 
         registrarActividad($log, 'EDITAR', "Producto editado: " . trim($data['nombre']) . " (ID " . $id . ")");
+
+        registrarMovimiento($movimientos, $id, trim($data['nombre']), 'web', (int) $antes['stock'], (int) $data['stock']);
 
         responderJson(200, ["success" => true], true);
 
@@ -229,6 +256,8 @@ switch ($method) {
             "Stock ajustado: " . $antes['nombre'] . " (ID " . $id . "): " . $antes['stock'] . " -> " . $despues['stock']
         );
 
+        registrarMovimiento($movimientos, $id, $despues['nombre'], 'scanner', (int) $antes['stock'], (int) $despues['stock']);
+
         responderJson(200, ["success" => true, "stock" => (int) $despues['stock']], true);
 
         alertarSiProcede($db, $antes, $despues);
@@ -257,6 +286,8 @@ switch ($method) {
         }
 
         registrarActividad($log, 'ELIMINAR', "Producto eliminado: " . $existente['nombre'] . " (ID " . $id . ")");
+
+        registrarMovimiento($movimientos, $id, $existente['nombre'], 'web', (int) $existente['stock'], 0, 'baja');
 
         responderJson(200, ["success" => true]);
 

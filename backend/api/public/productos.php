@@ -14,11 +14,13 @@ require_once __DIR__ . '/../../auth/api_auth.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../models/producto.php';
 require_once __DIR__ . '/../../models/log.php';
+require_once __DIR__ . '/../../models/movimiento.php';
 
 $database = new Database();
 $db = $database->connect();
 $producto = new Producto($db);
 $log = new Log($db);
+$movimientos = new MovimientoStock($db);
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -29,6 +31,25 @@ function registrarActividadApi($log, $keyData, $accion, $detalle)
         $log->registrar(null, 'API: ' . ($keyData['nombre'] ?? 'desconocida'), $accion, $detalle);
     } catch (Throwable $e) {
         error_log("No se pudo registrar la actividad de la API: " . $e->getMessage());
+    }
+}
+
+/** Registra el movimiento de stock hecho con API key. Un fallo aquí no debe romper la petición. */
+function registrarMovimientoApi($movimientos, $keyData, $productoId, $nombre, $anterior, $nuevo, $tipo = null)
+{
+    try {
+        $movimientos->registrar(
+            $productoId,
+            $nombre,
+            null,
+            'API: ' . ($keyData['nombre'] ?? 'desconocida'),
+            'api',
+            $anterior,
+            $nuevo,
+            $tipo
+        );
+    } catch (Throwable $e) {
+        error_log("No se pudo registrar el movimiento de stock de la API: " . $e->getMessage());
     }
 }
 
@@ -101,8 +122,11 @@ switch ($method) {
             throw $e;
         }
 
+        $nuevoId = (int) $db->lastInsertId();
+
         if ($resultado) {
             registrarActividadApi($log, $keyData, 'CREAR', "Producto creado: " . trim($data['nombre']));
+            registrarMovimientoApi($movimientos, $keyData, $nuevoId, trim($data['nombre']), 0, (int) $data['stock'], 'alta');
             http_response_code(201);
             echo json_encode(['success' => true, 'message' => 'Producto creado']);
         } else {
@@ -133,7 +157,9 @@ switch ($method) {
             break;
         }
 
-        if (!$producto->obtenerPorId($id)) {
+        $antes = $producto->obtenerPorId($id);
+
+        if (!$antes) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Producto no encontrado']);
             break;
@@ -152,6 +178,7 @@ switch ($method) {
 
         if ($resultado) {
             registrarActividadApi($log, $keyData, 'EDITAR', "Producto editado: " . trim($data['nombre']) . " (ID " . $id . ")");
+            registrarMovimientoApi($movimientos, $keyData, $id, trim($data['nombre']), (int) $antes['stock'], (int) $data['stock']);
             echo json_encode(['success' => true, 'message' => 'Producto actualizado']);
         } else {
             http_response_code(400);
@@ -184,6 +211,7 @@ switch ($method) {
 
         if ($resultado) {
             registrarActividadApi($log, $keyData, 'ELIMINAR', "Producto eliminado: " . $existente['nombre'] . " (ID " . $id . ")");
+            registrarMovimientoApi($movimientos, $keyData, $id, $existente['nombre'], (int) $existente['stock'], 0, 'baja');
             echo json_encode(['success' => true, 'message' => 'Producto eliminado']);
         } else {
             http_response_code(400);
