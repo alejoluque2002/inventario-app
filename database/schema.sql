@@ -64,16 +64,16 @@ CREATE TABLE IF NOT EXISTS logs (
 
 -- ============================================
 -- Tabla: api_keys
--- Para crear una clave (genera una aleatoria de 40 caracteres):
---   INSERT INTO api_keys (nombre, api_key, permisos)
---   VALUES ('Mi integración', SUBSTRING(SHA2(CONCAT(UUID(), RAND()), 256), 1, 40), 'lectura');
---   SELECT nombre, api_key FROM api_keys ORDER BY id DESC LIMIT 1;
+-- Las claves se crean desde la app (sección API Keys, solo admin).
+-- Solo se guarda el hash SHA-256 y un prefijo para identificarlas;
+-- la clave completa se muestra una única vez al crearla.
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS api_keys (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     nombre     VARCHAR(100) NOT NULL,
-    api_key    VARCHAR(64) NOT NULL UNIQUE,
+    key_prefix VARCHAR(12) NOT NULL DEFAULT '',
+    key_hash   CHAR(64) NOT NULL UNIQUE,
     permisos   ENUM('lectura', 'escritura') NOT NULL DEFAULT 'lectura',
     activa     TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
