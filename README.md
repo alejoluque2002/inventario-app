@@ -49,7 +49,7 @@ Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScri
 - Paginación
 - Lector de código de barras integrado con ajuste de stock, disponible para admin y empleado (QuaggaJS — requiere HTTPS o localhost)
 - API REST pública con autenticación por API key (permisos de lectura y escritura)
-- Panel de consulta de API keys (solo administrador)
+- Gestión de API keys desde la app (solo administrador): crear, revocar, reactivar y eliminar
 - Registro de actividad — logs de creación, edición y eliminación con usuario y fecha
 - Historial de movimientos de stock — cada alta, entrada, salida y baja con usuario, origen (web, scanner o API) y valores antes y después (solo administrador)
 - Registro de nuevos usuarios desde la aplicación (solo administrador)
@@ -107,7 +107,7 @@ Abre phpMyAdmin e importa el script (crea la base de datos `inventario_db` y las
 database/schema.sql
 ```
 
-> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica en orden las migraciones de `database/migrations/` (`001_endurecer_esquema.sql`, `002_movimientos_stock.sql`).
+> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica en orden las migraciones de `database/migrations/` (`001_endurecer_esquema.sql`, `002_movimientos_stock.sql`, `003_api_keys_hash.sql`).
 
 **4. Configurar el entorno (`.env`)**
 
@@ -194,14 +194,9 @@ X-API-Key: tu_api_key
 ?api_key=tu_api_key
 ```
 
-**Crear una API key** (por ahora se gestionan desde SQL; el panel de la app solo las lista):
+**Crear una API key:** desde la app, en la sección **API Keys** (solo administrador) con el botón "Nueva API key". La clave completa se muestra **una sola vez**; en la base de datos solo se guarda su hash SHA-256 y un prefijo para identificarla. Si se pierde, se revoca y se crea otra.
 
-```sql
-INSERT INTO api_keys (nombre, api_key, permisos)
-VALUES ('Mi integración', SUBSTRING(SHA2(CONCAT(UUID(), RAND()), 256), 1, 40), 'lectura');
-```
-
-`permisos` puede ser `lectura` o `escritura`. Usa siempre la cabecera `X-API-Key`; el parámetro `?api_key=` se mantiene por compatibilidad, pero las URLs acaban en logs. Las escrituras hechas con API key quedan registradas en el registro de actividad.
+Los permisos de una clave pueden ser `lectura` o `escritura`. Usa siempre la cabecera `X-API-Key`; el parámetro `?api_key=` se mantiene por compatibilidad, pero las URLs acaban en logs. Las escrituras hechas con API key quedan registradas en el registro de actividad.
 
 **Endpoints disponibles:**
 
@@ -288,10 +283,11 @@ inventario-app/
 - `.htaccess` que bloquea el acceso web a `.env`, `.git` y a `config/`, `models/`, `services/` y `libs/`
 - Registro de actividad también para las escrituras hechas con API key
 - Historial de movimientos de stock (quién, cuándo, origen y valores antes y después), también para los cambios hechos con API key
+- API keys guardadas solo como hash SHA-256, mostradas una vez al crearlas y revocables desde la app
 
 **Limitaciones conocidas / siguiente paso**
 
-- Las API keys se guardan en claro en la base de datos (lo ideal es guardar solo su hash y mostrarlas una vez al crearlas) y no hay rate limiting en la API pública
+- No hay rate limiting en la API pública
 - Las librerías del frontend se cargan desde CDN sin SRI (hashes de integridad)
 - Falta una Content-Security-Policy (los `onclick` en línea del HTML la impiden por ahora)
 - Se recomienda servir la aplicación bajo HTTPS en cualquier entorno que no sea local
