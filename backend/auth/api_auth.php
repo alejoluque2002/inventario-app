@@ -3,9 +3,10 @@
 require_once __DIR__ . '/../config/database.php';
 
 /**
- * Valida la API key de la petición y devuelve sus datos.
+ * Valida la API key de la petición y devuelve sus datos (id, nombre, permisos).
  * Recomendado: cabecera "X-API-Key". También se admite ?api_key= por
  * compatibilidad, pero las URLs acaban en logs, así que es menos seguro.
+ * En la base de datos solo se guarda el hash SHA-256 de la clave, nunca la clave.
  */
 function autenticarApiKey($permisoRequerido = 'lectura')
 {
@@ -33,10 +34,10 @@ function autenticarApiKey($permisoRequerido = 'lectura')
     $db = $database->connect();
 
     $stmt = $db->prepare("
-        SELECT * FROM api_keys
-        WHERE api_key = :key AND activa = 1
+        SELECT id, nombre, permisos FROM api_keys
+        WHERE key_hash = :hash AND activa = 1
     ");
-    $stmt->execute([':key' => $apiKey]);
+    $stmt->execute([':hash' => hash('sha256', $apiKey)]);
     $keyData = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$keyData) {
