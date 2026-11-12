@@ -221,10 +221,16 @@ inventario-app/
 │   │   └── style.css
 │   └── js/
 │       ├── config.js
-│       ├── app.js
 │       ├── auth.js
 │       ├── login.js
-│       └── logout.js
+│       ├── logout.js
+│       ├── ui.js
+│       ├── productos.js
+│       ├── usuarios.js
+│       ├── logs.js
+│       ├── scanner.js
+│      ├── apikeys.js
+│       └── eventos.js
 ├── backend/
 │   ├── api/
 │   │   ├── public/
@@ -284,12 +290,12 @@ inventario-app/
 - Registro de actividad también para las escrituras hechas con API key
 - Historial de movimientos de stock (quién, cuándo, origen y valores antes y después), también para los cambios hechos con API key
 - API keys guardadas solo como hash SHA-256, mostradas una vez al crearlas y revocables desde la app
+- Librerías del frontend con versión fija y SRI (hashes de integridad) en los CDN
+- Content-Security-Policy estricta: sin scripts en línea (`onclick` sustituidos por `data-accion` y un manejador central); `style-src` permite estilos en línea por Chart.js y SweetAlert2
 
 **Limitaciones conocidas / siguiente paso**
 
 - No hay rate limiting en la API pública
-- Las librerías del frontend se cargan desde CDN sin SRI (hashes de integridad)
-- Falta una Content-Security-Policy (los `onclick` en línea del HTML la impiden por ahora)
 - Se recomienda servir la aplicación bajo HTTPS en cualquier entorno que no sea local
 
 
