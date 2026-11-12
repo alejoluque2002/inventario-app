@@ -21,11 +21,11 @@ async function cargarApiKeys() {
                     <td>${badgeEstado}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-warning"
-                                onclick="cambiarEstadoApiKey(${Number(k.id)}, ${activa ? 'false' : 'true'})">
+                                data-accion="cambiarEstadoApiKey" data-id="${Number(k.id)}" data-activa="${activa ? 'false' : 'true'}">
                             ${activa ? 'Revocar' : 'Reactivar'}
                         </button>
                         <button class="btn btn-sm btn-outline-danger"
-                                onclick="eliminarApiKey(${Number(k.id)})">
+                                data-accion="eliminarApiKey" data-id="${Number(k.id)}">
                             Eliminar
                         </button>
                     </td>

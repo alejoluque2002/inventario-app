@@ -122,12 +122,12 @@ function mostrarProductos(productos) {
                 <td class="admin-only">
                     <button
                         class="btn btn-warning btn-sm me-2"
-                        onclick="editarProducto(${Number(producto.id)})">
+                        data-accion="editarProducto" data-id="${Number(producto.id)}">
                         Editar
                     </button>
                     <button
                         class="btn btn-danger btn-sm"
-                        onclick="eliminarProducto(${Number(producto.id)})">
+                        data-accion="eliminarProducto" data-id="${Number(producto.id)}">
                         Eliminar
                     </button>
                 </td>
