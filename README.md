@@ -52,7 +52,7 @@ Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScri
 - Gestión de API keys desde la app (solo administrador): crear, revocar, reactivar y eliminar
 - Registro de actividad — logs de creación, edición y eliminación con usuario y fecha
 - Historial de movimientos de stock — cada alta, entrada, salida y baja con usuario, origen (web, scanner o API) y valores antes y después (solo administrador)
-- Registro de nuevos usuarios desde la aplicación (solo administrador)
+- Gestión de usuarios desde la aplicación (solo administrador): alta, edición de nombre, email y rol, y restablecimiento de contraseña con una temporal que se muestra una sola vez
 - Cambio de contraseña
 - Exportación a Excel y PDF
 - Modo oscuro
