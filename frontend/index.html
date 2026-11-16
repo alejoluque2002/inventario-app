@@ -224,6 +224,7 @@
                             <th>Nombre</th>
                             <th>Email</th>
                             <th>Rol</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="usuariosBody"></tbody>
@@ -362,6 +363,29 @@
     </div>
 </div>
 
+<div class="modal fade" id="usuarioEditarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="usuarioEditarForm">
+                    <input type="hidden" id="editarUsuarioId">
+                    <input type="text" id="editarNombre" class="form-control mb-3" placeholder="Nombre" maxlength="100" required>
+                    <input type="email" id="editarEmail" class="form-control mb-3" placeholder="Email" maxlength="150" required>
+                    <select id="editarRol" class="form-select mb-3">
+                        <option value="empleado">Empleado</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="usuarioModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -417,11 +441,11 @@
 <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js" integrity="sha384-sl2LNalPRD3qrS3TKmINXWwRcQKf9cUlNZGd8pqjlpzwbzgMsFgE+133u4kM32IR" crossorigin="anonymous"></script>
 <script src="js/ui.js?v=1"></script>
 <script src="js/productos.js?v=1"></script>
-<script src="js/usuarios.js?v=1"></script>
+<script src="js/usuarios.js?v=2"></script>
 <script src="js/logs.js?v=1"></script>
 <script src="js/scanner.js?v=1"></script>
 <script src="js/apikeys.js?v=1"></script>
-<script src="js/eventos.js?v=1"></script>
+<script src="js/eventos.js?v=2"></script>
 
 </body>
 </html>
