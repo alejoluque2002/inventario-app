@@ -22,6 +22,8 @@ document.addEventListener("click", (e) => {
         case "ajustarStock":        ajustarStock(Number(arg)); break;
         case "aplicarCantidad":     aplicarCantidad(); break;
         case "abrirModalUsuario":   abrirModalUsuario(); break;
+        case "editarUsuario":       editarUsuario(id); break;
+        case "restablecerPassword": restablecerPassword(id); break;
         case "abrirModalApiKey":    abrirModalApiKey(); break;
         case "cambiarEstadoApiKey": cambiarEstadoApiKey(id, el.dataset.activa === "true"); break;
         case "eliminarApiKey":      eliminarApiKey(id); break;

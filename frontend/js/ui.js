@@ -81,3 +81,14 @@ function aplicarPermisos() {
     });
 }
 
+
+// Formato de importes: 8.921,35 € (punto en los miles, coma en los decimales)
+const formatoEuro = new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    useGrouping: "always"   // sin esto, el español no agrupa los miles de 4 cifras (1000,00)
+});
+
+function euros(valor) {
+    return formatoEuro.format(Number(valor) || 0);
+}

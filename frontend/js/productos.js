@@ -76,7 +76,7 @@ function actualizarGrafica(productos) {
                 datalabels: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: (item) => ` ${item.label}: ${item.raw} €`
+                        label: (item) => ` ${item.label}: ${euros(item.raw)}`
                     }
                 }
             }
@@ -116,7 +116,7 @@ function mostrarProductos(productos) {
             <tr>
                 <td>${esc(producto.id)}</td>
                 <td>${esc(producto.nombre)}</td>
-                <td>${esc(producto.precio)}</td>
+                <td>${esc(euros(producto.precio))}</td>
                 <td>${badgeStock(producto.stock, producto.stock_minimo)}</td>
                 <td>${esc(producto.categoria)}</td>
                 <td class="admin-only">
@@ -213,7 +213,7 @@ async function cargarProductos() {
             (total, p) => total + (Number(p.precio) * Number(p.stock)), 0
         );
         document.getElementById("valorInventario").textContent =
-            valorInventario.toFixed(2) + " €";
+            euros(valorInventario);
 
         const sinStock = productos.filter(p => Number(p.stock) === 0).length;
         document.getElementById("sinStock").textContent = sinStock;
@@ -429,7 +429,7 @@ function exportarPDF() {
     productosCache.forEach(producto => {
         doc.setFontSize(10);
         doc.text(
-            `${producto.id} | ${producto.nombre} | ${producto.categoria} | Stock: ${producto.stock} | ${producto.precio}€`,
+            `${producto.id} | ${producto.nombre} | ${producto.categoria} | Stock: ${producto.stock} | ${euros(producto.precio)}`,
             14, y
         );
         y += 8;
