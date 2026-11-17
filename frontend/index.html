@@ -296,6 +296,9 @@
                     <th>Nombre</th>
                     <th>Prefijo</th>
                     <th>Permisos</th>
+                    <th>Caduca</th>
+                    <th>Último uso</th>
+                    <th>Límite</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -349,9 +352,19 @@
                     <div class="mb-3">
                         <label for="apikeyPermisos" class="form-label">Permisos</label>
                         <select id="apikeyPermisos" class="form-select">
-                            <option value="lectura">Lectura</option>
-                            <option value="escritura">Escritura</option>
+                            <option value="lectura">Lectura (consultar)</option>
+                            <option value="escritura">Escritura (consultar, crear y editar)</option>
+                            <option value="completo">Completo (además, eliminar)</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apikeyExpira" class="form-label">Caduca el</label>
+                        <input type="date" id="apikeyExpira" class="form-control">
+                        <div class="form-text">Opcional. Déjalo vacío para que no caduque.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apikeyLimite" class="form-label">Peticiones máximas por minuto</label>
+                        <input type="number" id="apikeyLimite" class="form-control" value="60" min="1" max="10000" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -444,7 +457,7 @@
 <script src="js/usuarios.js?v=2"></script>
 <script src="js/logs.js?v=1"></script>
 <script src="js/scanner.js?v=1"></script>
-<script src="js/apikeys.js?v=1"></script>
+<script src="js/apikeys.js?v=2"></script>
 <script src="js/eventos.js?v=2"></script>
 
 </body>
