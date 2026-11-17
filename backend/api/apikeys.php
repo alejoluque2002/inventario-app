@@ -53,7 +53,9 @@ switch ($method) {
 
         // Nunca se devuelve la clave ni su hash: solo el prefijo para identificarla
         $stmt = $db->prepare("
-            SELECT id, nombre, key_prefix, permisos, activa, created_at
+            SELECT id, nombre, key_prefix, permisos, activa, created_at,
+                   expires_at, last_used_at, limite_minuto,
+                   (expires_at IS NOT NULL AND expires_at < CURDATE()) AS caducada
             FROM api_keys
             ORDER BY id ASC
         ");
@@ -62,7 +64,7 @@ switch ($method) {
         responderJson(200, $stmt->fetchAll(PDO::FETCH_ASSOC));
         break;
 
-    case 'POST':
+        case 'POST':
 
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -80,28 +82,70 @@ switch ($method) {
 
         $permisos = $data['permisos'] ?? '';
 
-        if (!in_array($permisos, ['lectura', 'escritura'], true)) {
-            responderJson(400, ["success" => false, "message" => "Los permisos deben ser 'lectura' o 'escritura'"]);
+        if (!in_array($permisos, ['lectura', 'escritura', 'completo'], true)) {
+            responderJson(400, ["success" => false, "message" => "Los permisos deben ser 'lectura', 'escritura' o 'completo'"]);
             break;
+        }
+
+        // Caducidad opcional (AAAA-MM-DD): la clave vale hasta el final de ese día
+        $expira = null;
+
+        if (isset($data['expira']) && $data['expira'] !== '') {
+            $fecha = is_string($data['expira']) ? DateTime::createFromFormat('!Y-m-d', $data['expira']) : false;
+            $errores = DateTime::getLastErrors();
+
+            if (
+                !$fecha ||
+                ($errores !== false && ($errores['warning_count'] > 0 || $errores['error_count'] > 0))
+            ) {
+                responderJson(400, ["success" => false, "message" => "La fecha de caducidad no es válida"]);
+                break;
+            }
+
+            if ($fecha->format('Y-m-d') < date('Y-m-d')) {
+                responderJson(400, ["success" => false, "message" => "La fecha de caducidad no puede ser anterior a hoy"]);
+                break;
+            }
+
+            $expira = $fecha->format('Y-m-d');
+        }
+
+        // Peticiones máximas por minuto (por defecto 60)
+        $limite = 60;
+
+        if (isset($data['limite_minuto']) && $data['limite_minuto'] !== '') {
+            $limite = filter_var($data['limite_minuto'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 10000]]);
+
+            if ($limite === false) {
+                responderJson(400, ["success" => false, "message" => "El límite por minuto debe estar entre 1 y 10000"]);
+                break;
+            }
         }
 
         // 40 caracteres hexadecimales aleatorios (160 bits)
         $clave = bin2hex(random_bytes(20));
 
         $stmt = $db->prepare("
-            INSERT INTO api_keys (nombre, key_prefix, key_hash, permisos)
-            VALUES (:nombre, :prefix, :hash, :permisos)
+            INSERT INTO api_keys (nombre, key_prefix, key_hash, permisos, expires_at, limite_minuto)
+            VALUES (:nombre, :prefix, :hash, :permisos, :expira, :limite)
         ");
         $stmt->execute([
             ':nombre'   => $nombre,
             ':prefix'   => substr($clave, 0, 8),
             ':hash'     => hash('sha256', $clave),
-            ':permisos' => $permisos
+            ':permisos' => $permisos,
+            ':expira'   => $expira,
+            ':limite'   => $limite
         ]);
 
         $id = (int) $db->lastInsertId();
 
-        registrarActividad($log, 'CREAR', "API key creada: " . $nombre . " (" . $permisos . ")");
+        registrarActividad(
+            $log,
+            'CREAR',
+            "API key creada: " . $nombre . " (" . $permisos . ", "
+                . ($expira ? "caduca " . $expira : "sin caducidad") . ", " . $limite . "/min)"
+        );
 
         // Esta es la única vez que se muestra la clave completa
         responderJson(201, [

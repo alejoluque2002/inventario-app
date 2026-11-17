@@ -1,23 +1,49 @@
+function fechaCorta(texto) {
+    if (!texto) return null;
+    // Las fechas llegan como "2026-11-30" o "2026-11-17 11:30:00"
+    const fecha = new Date(texto.replace(' ', 'T'));
+    return isNaN(fecha) ? null : fecha;
+}
+
 async function cargarApiKeys() {
     try {
         const response = await apiFetch(`${BASE_URL}/backend/api/apikeys.php`, {});
         const keys = await response.json();
+
+        if (!response.ok || !Array.isArray(keys)) return;
+
         const tbody = document.getElementById("apikeysBody");
 
         tbody.innerHTML = keys.map(k => {
             const activa = k.activa == 1;
-            const badgePermisos = k.permisos === 'escritura'
-                ? '<span class="badge bg-danger">Escritura</span>'
-                : '<span class="badge bg-info">Lectura</span>';
-            const badgeEstado = activa
-                ? '<span class="badge bg-success">Activa</span>'
-                : '<span class="badge bg-secondary">Inactiva</span>';
+            const caducada = k.caducada == 1;
+
+            const badgePermisos = {
+                lectura:   '<span class="badge bg-info">Lectura</span>',
+                escritura: '<span class="badge bg-warning text-dark">Escritura</span>',
+                completo:  '<span class="badge bg-danger">Completo</span>'
+            }[k.permisos] || esc(k.permisos);
+
+            let badgeEstado;
+            if (caducada) {
+                badgeEstado = '<span class="badge bg-dark">Caducada</span>';
+            } else if (activa) {
+                badgeEstado = '<span class="badge bg-success">Activa</span>';
+            } else {
+                badgeEstado = '<span class="badge bg-secondary">Inactiva</span>';
+            }
+
+            const caduca = fechaCorta(k.expires_at);
+            const ultimoUso = fechaCorta(k.last_used_at);
 
             return `
                 <tr>
                     <td>${esc(k.nombre)}</td>
                     <td><code>${esc(k.key_prefix)}…</code></td>
                     <td>${badgePermisos}</td>
+                    <td>${caduca ? esc(caduca.toLocaleDateString('es-ES')) : '<span class="text-muted">Sin caducidad</span>'}</td>
+                    <td>${ultimoUso ? esc(ultimoUso.toLocaleString('es-ES')) : '<span class="text-muted">Nunca</span>'}</td>
+                    <td>${esc(k.limite_minuto)}/min</td>
                     <td>${badgeEstado}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-warning"
@@ -39,6 +65,8 @@ async function cargarApiKeys() {
 
 function abrirModalApiKey() {
     document.getElementById("apikeyForm").reset();
+    // La caducidad no puede ser anterior a hoy (formato AAAA-MM-DD, hora local)
+    document.getElementById("apikeyExpira").min = new Date().toLocaleDateString("sv-SE");
     new bootstrap.Modal(document.getElementById("apikeyModal")).show();
 }
 
@@ -47,8 +75,12 @@ document.getElementById("apikeyForm").addEventListener("submit", async (e) => {
 
     const datos = {
         nombre: document.getElementById("apikeyNombre").value.trim(),
-        permisos: document.getElementById("apikeyPermisos").value
+        permisos: document.getElementById("apikeyPermisos").value,
+        limite_minuto: Number(document.getElementById("apikeyLimite").value)
     };
+
+    const expira = document.getElementById("apikeyExpira").value;
+    if (expira) datos.expira = expira;
 
     try {
         const response = await apiFetch(`${BASE_URL}/backend/api/apikeys.php`, {
@@ -66,15 +98,21 @@ document.getElementById("apikeyForm").addEventListener("submit", async (e) => {
             title: "API key creada",
             html: `
                 <p>Cópiala ahora: <b>no se volverá a mostrar</b>.</p>
-                <code id="claveNueva" style="word-break:break-all;user-select:all">${esc(resultado.api_key)}</code>
+                <code style="word-break:break-all;user-select:all">${esc(resultado.api_key)}</code>
+                <div class="mt-3">
+                    <button type="button" id="copiarApiKey" class="btn btn-outline-secondary btn-sm">Copiar</button>
+                </div>
             `,
             confirmButtonText: "Ya la he copiado",
-            showDenyButton: true,
-            denyButtonText: "Copiar",
-            preDeny: () => {
-                navigator.clipboard.writeText(resultado.api_key);
-                Swal.showValidationMessage("Copiada al portapapeles");
-                return false;
+            didOpen: (popup) => {
+                popup.querySelector("#copiarApiKey").addEventListener("click", async (ev) => {
+                    try {
+                        await navigator.clipboard.writeText(resultado.api_key);
+                        ev.target.textContent = "Copiada";
+                    } catch (err) {
+                        ev.target.textContent = "Selecciónala y copia con Ctrl+C";
+                    }
+                });
             }
         });
     } catch (err) {
