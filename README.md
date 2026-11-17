@@ -48,8 +48,8 @@ Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScri
 - Ordenación por columnas
 - Paginación
 - Lector de código de barras integrado con ajuste de stock, disponible para admin y empleado (QuaggaJS — requiere HTTPS o localhost)
-- API REST pública con autenticación por API key (permisos de lectura y escritura)
-- Gestión de API keys desde la app (solo administrador): crear, revocar, reactivar y eliminar
+- API REST pública con autenticación por API key (permisos de lectura, escritura y completo)
+- Gestión de API keys desde la app (solo administrador): crear, revocar, reactivar y eliminar, con permisos por niveles, caducidad opcional, límite de peticiones por minuto y fecha de último uso
 - Registro de actividad — logs de creación, edición y eliminación con usuario y fecha
 - Historial de movimientos de stock — cada alta, entrada, salida y baja con usuario, origen (web, scanner o API) y valores antes y después (solo administrador)
 - Gestión de usuarios desde la aplicación (solo administrador): alta, edición de nombre, email y rol, y restablecimiento de contraseña con una temporal que se muestra una sola vez
@@ -107,7 +107,7 @@ Abre phpMyAdmin e importa el script (crea la base de datos `inventario_db` y las
 database/schema.sql
 ```
 
-> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica en orden las migraciones de `database/migrations/` (`001_endurecer_esquema.sql`, `002_movimientos_stock.sql`, `003_api_keys_hash.sql`).
+> ¿Ya tenías una instalación anterior? No ejecutes `schema.sql`: haz una copia de seguridad y aplica en orden las migraciones de `database/migrations/` (`001_endurecer_esquema.sql`, `002_movimientos_stock.sql`, `003_api_keys_hash.sql`, `004_api_keys_mejoras.sql`).
 
 **4. Configurar el entorno (`.env`)**
 
@@ -196,17 +196,17 @@ X-API-Key: tu_api_key
 
 **Crear una API key:** desde la app, en la sección **API Keys** (solo administrador) con el botón "Nueva API key". La clave completa se muestra **una sola vez**; en la base de datos solo se guarda su hash SHA-256 y un prefijo para identificarla. Si se pierde, se revoca y se crea otra.
 
-Los permisos de una clave pueden ser `lectura` o `escritura`. Usa siempre la cabecera `X-API-Key`; el parámetro `?api_key=` se mantiene por compatibilidad, pero las URLs acaban en logs. Las escrituras hechas con API key quedan registradas en el registro de actividad.
+**Permisos** (cada nivel incluye los anteriores): `lectura` (GET), `escritura` (GET, POST y PUT) y `completo` (además, DELETE). Una clave puede tener fecha de caducidad (vale hasta el final de ese día) y un límite de peticiones por minuto (por defecto 60); al superarlo la API responde `429` con la cabecera `Retry-After`. Usa siempre la cabecera `X-API-Key`; el parámetro `?api_key=` se mantiene por compatibilidad, pero las URLs acaban en logs. Las escrituras hechas con API key quedan registradas en el registro de actividad.
 
 **Endpoints disponibles:**
 
-| Método | Endpoint | Descripción | Permisos |
-|--------|----------|-------------|----------|
+| Método | Endpoint | Descripción | Permiso mínimo |
+|--------|----------|-------------|----------------|
 | GET | /productos.php | Listar todos los productos | Lectura |
 | GET | /productos.php?id=1 | Obtener producto por ID | Lectura |
 | POST | /productos.php | Crear producto | Escritura |
 | PUT | /productos.php?id=1 | Actualizar producto | Escritura |
-| DELETE | /productos.php?id=1 | Eliminar producto | Escritura |
+| DELETE | /productos.php?id=1 | Eliminar producto | Completo |
 
 ---
 
@@ -229,7 +229,7 @@ inventario-app/
 │       ├── usuarios.js
 │       ├── logs.js
 │       ├── scanner.js
-│      ├── apikeys.js
+│       ├── apikeys.js
 │       └── eventos.js
 ├── backend/
 │   ├── api/
@@ -249,6 +249,7 @@ inventario-app/
 │   │   ├── protect.php
 │   │   ├── session.php
 │   │   ├── rate_limit.php
+│   │   ├── rate_limit_api.php
 │   │   ├── api_auth.php
 │   │   └── change_password.php
 │   ├── config/
@@ -292,10 +293,11 @@ inventario-app/
 - API keys guardadas solo como hash SHA-256, mostradas una vez al crearlas y revocables desde la app
 - Librerías del frontend con versión fija y SRI (hashes de integridad) en los CDN
 - Content-Security-Policy estricta: sin scripts en línea (`onclick` sustituidos por `data-accion` y un manejador central); `style-src` permite estilos en línea por Chart.js y SweetAlert2
+- API keys con permisos por niveles, caducidad opcional, límite de peticiones por minuto (`429`) y registro del último uso
 
 **Limitaciones conocidas / siguiente paso**
 
-- No hay rate limiting en la API pública
+- El límite de peticiones por API key usa ficheros temporales del servidor: vale para un solo servidor; con varios haría falta un almacén compartido
 - Se recomienda servir la aplicación bajo HTTPS en cualquier entorno que no sea local
 
 
