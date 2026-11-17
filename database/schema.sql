@@ -70,13 +70,16 @@ CREATE TABLE IF NOT EXISTS logs (
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS api_keys (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    nombre     VARCHAR(100) NOT NULL,
-    key_prefix VARCHAR(12) NOT NULL DEFAULT '',
-    key_hash   CHAR(64) NOT NULL UNIQUE,
-    permisos   ENUM('lectura', 'escritura') NOT NULL DEFAULT 'lectura',
-    activa     TINYINT(1) NOT NULL DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    nombre        VARCHAR(100) NOT NULL,
+    key_prefix    VARCHAR(12) NOT NULL DEFAULT '',
+    key_hash      CHAR(64) NOT NULL UNIQUE,
+    permisos      ENUM('lectura', 'escritura', 'completo') NOT NULL DEFAULT 'lectura',
+    activa        TINYINT(1) NOT NULL DEFAULT 1,
+    expires_at    DATE NULL,
+    last_used_at  DATETIME NULL,
+    limite_minuto INT NOT NULL DEFAULT 60,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================
