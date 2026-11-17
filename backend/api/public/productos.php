@@ -189,7 +189,7 @@ switch ($method) {
 
     case 'DELETE':
 
-        $keyData = autenticarApiKey('escritura');
+        $keyData = autenticarApiKey('completo');
 
         $id = leerIdApi();
 
