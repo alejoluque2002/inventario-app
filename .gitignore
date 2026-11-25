@@ -11,7 +11,7 @@ backend/config/mail.php
 Thumbs.db
 
 # Dependencias y logs
-vendor/
+/vendor/
 node_modules/
 *.log
 

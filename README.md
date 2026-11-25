@@ -217,6 +217,8 @@ inventario-app/
 ├── frontend/
 │   ├── index.html
 │   ├── login.html
+│   ├── favicon.svg
+│   ├── vendor/
 │   ├── css/
 │   │   └── style.css
 │   └── js/
@@ -274,6 +276,24 @@ inventario-app/
 
 ---
 
+## Librerías de terceros
+
+El frontend no carga nada de CDN: todas las librerías están en `frontend/vendor/`.
+
+| Librería | Versión | Licencia | Uso |
+|---|---|---|---|
+| Bootstrap | 5.3.8 | MIT | Interfaz |
+| Chart.js | 4.4.7 | MIT | Gráficos |
+| SweetAlert2 | 11.26.25 | MIT | Diálogos |
+| SheetJS (xlsx) | 0.18.5 | Apache-2.0 | Exportar a Excel |
+| jsPDF | 2.5.1 | MIT | Exportar a PDF |
+| QuaggaJS | 0.12.1 | MIT | Escáner de códigos de barras |
+| Tabler Icons (webfont) | 3.51.0 | MIT | Iconos |
+
+Para actualizar una librería: descarga la nueva versión, compara su hash sha384 con el del CDN oficial, sustituye el archivo en `frontend/vendor/` y prueba la aplicación.
+
+---
+
 ## Seguridad
 
 **Implementado**
@@ -291,8 +311,8 @@ inventario-app/
 - Registro de actividad también para las escrituras hechas con API key
 - Historial de movimientos de stock (quién, cuándo, origen y valores antes y después), también para los cambios hechos con API key
 - API keys guardadas solo como hash SHA-256, mostradas una vez al crearlas y revocables desde la app
-- Librerías del frontend con versión fija y SRI (hashes de integridad) en los CDN
-- Content-Security-Policy estricta: sin scripts en línea (`onclick` sustituidos por `data-accion` y un manejador central); `style-src` permite estilos en línea por Chart.js y SweetAlert2
+- Librerías del frontend alojadas en el propio proyecto (`frontend/vendor/`, versiones fijas y verificadas por hash): sin dependencias de CDN ni envío de datos a terceros
+- Content-Security-Policy estricta (`default-src 'self'`, sin dominios externos): sin scripts en línea (`onclick` sustituidos por `data-accion` y un manejador central); `style-src` permite estilos en línea por Chart.js y SweetAlert2
 - API keys con permisos por niveles, caducidad opcional, límite de peticiones por minuto (`429`) y registro del último uso
 
 **Limitaciones conocidas / siguiente paso**
