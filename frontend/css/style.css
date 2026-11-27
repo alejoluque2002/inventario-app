@@ -336,7 +336,9 @@ a { text-underline-offset: 2px; }
     gap: 20px;
 }
 
-.charts-grid .card-box { margin-bottom: 0; }
+.charts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.charts-grid .card-box { margin-bottom: 0; min-width: 0; }
 
 .section-toolbar {
     display: flex;
@@ -529,7 +531,8 @@ textarea.form-control { min-height: 80px; }
 .badge.bg-secondary { --b: var(--b-secondary); }
 .badge.bg-dark      { --b: var(--b-secondary); }
 
-.text-danger { color: var(--b-danger) !important; }
+.text-danger  { color: var(--b-danger) !important; }
+.text-success { color: var(--b-success) !important; }
 .text-muted  { color: var(--muted) !important; }
 
 /* Modales ------------------------------------------------------------------ */
@@ -586,8 +589,16 @@ textarea.form-control { min-height: 80px; }
     font-family: inherit;
 }
 
-.swal2-title,
-.swal2-html-container { color: var(--text); }
+.swal2-title {
+    color: var(--text);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.swal2-html-container {
+    color: var(--text);
+    font-size: 0.9375rem;
+}
 
 .swal2-styled.swal2-confirm {
     background-color: var(--accent) !important;
@@ -619,7 +630,7 @@ textarea.form-control { min-height: 80px; }
     .appnav { order: 3; flex-basis: 100%; }
     .topbar-user { display: none; }
     .main { padding: 20px 16px 40px; }
-    .charts-grid { grid-template-columns: 1fr; }
+    .charts-grid { grid-template-columns: minmax(0, 1fr); }
     .card-box { padding: 16px; }
 }
 
