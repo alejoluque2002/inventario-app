@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de seguridad - Inventario</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+
+    <link href="../vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css?v=4">
+    <link rel="stylesheet" href="../css/legal.css?v=1">
+    <script src="../js/tema.js"></script>
+</head>
+<body>
+
+<div class="layout">
+
+    <header class="appbar">
+        <a class="brand" href="../index.html">
+            <span class="brand-mark" aria-hidden="true"></span>
+            Inventario
+        </a>
+        <div class="appbar-right">
+            <a class="bar-link" href="../index.html">Volver a la aplicación</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <article class="legal">
+            <h1>Política de seguridad</h1>
+            <p class="legal-fecha">Última actualización: 27 de noviembre de 2026</p>
+
+
+            <h2>Cómo protegemos la aplicación</h2>
+            <ul>
+                <li>Las contraseñas se guardan cifradas con bcrypt y nunca se pueden consultar. El restablecimiento genera una contraseña temporal que se muestra una sola vez.</li>
+                <li>Las sesiones usan cookies HttpOnly y SameSite, y las peticiones que modifican datos llevan una protección contra falsificación (CSRF).</li>
+                <li>Los intentos de inicio de sesión fallidos se limitan para frenar ataques de fuerza bruta.</li>
+                <li>Las claves de API se guardan solo como huella (hash), con permisos por niveles, caducidad opcional y límite de peticiones por minuto. La clave completa se muestra una única vez al crearla.</li>
+                <li>Las cabeceras de seguridad y una política de contenidos (CSP) estricta impiden cargar scripts de otros sitios. Todo el código, las tipografías y los iconos se sirven desde el propio sitio.</li>
+                <li>Cada cambio importante queda en el registro de actividad y en el historial de movimientos de stock.</li>
+                <li>Los usuarios solo ven y hacen lo que su rol permite (administrador o empleado).</li>
+            </ul>
+
+            <h2>Tu parte</h2>
+            <ul>
+                <li>Usa una contraseña larga y única y no la compartas.</li>
+                <li>Cierra sesión en equipos compartidos.</li>
+                <li>Accede siempre a través de una conexión HTTPS cuando la aplicación esté publicada en Internet.</li>
+            </ul>
+
+            <h2>Cómo informar de una vulnerabilidad</h2>
+            <p>Si crees haber encontrado un fallo de seguridad, escribe a <mark class="pendiente">[EMAIL DE CONTACTO]</mark> con una descripción y los pasos para reproducirlo. Te responderemos lo antes posible. Te pedimos que no accedas a datos de otras personas, que no degrades el servicio y que nos des un plazo razonable para corregirlo antes de hacerlo público.</p>
+
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <nav aria-label="Información legal">
+            <a href="aviso-legal.html">Aviso legal</a>
+            <a href="privacidad.html">Política de privacidad</a>
+            <a href="cookies.html">Política de cookies</a>
+            <a href="condiciones.html">Condiciones de uso</a>
+            <a href="seguridad.html" aria-current="page">Política de seguridad</a>
+        </nav>
+    </footer>
+
+</div>
+
+</body>
+</html>
