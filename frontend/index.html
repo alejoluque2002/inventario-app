@@ -7,77 +7,43 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="vendor/tabler/tabler-icons.min.css">
-    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <script src="js/tema.js"></script>
 </head>
 <body>
 
 <div class="layout">
 
-    
-    <aside class="sidebar">
+    <header class="appbar">
 
-        <div class="sidebar-logo">
-            <i class="ti ti-package"></i>
+        <a class="brand" href="index.html">
+            <span class="brand-mark" aria-hidden="true"></span>
             Inventario
-        </div>
+        </a>
 
-        <nav class="sidebar-nav">
-            <a class="nav-item active" data-seccion="dashboard" data-accion="seccion">
-                <i class="ti ti-layout-dashboard"></i>
-                Dashboard
-            </a>
-            <a class="nav-item" data-seccion="productos" data-accion="seccion">
-                <i class="ti ti-box"></i>
-                Productos
-            </a>
-            <a class="nav-item" data-seccion="scanner" data-accion="seccion">
-                 <i class="ti ti-barcode"></i>
-                 Scanner
-            </a>
-            <a class="nav-item admin-only" data-seccion="usuarios" data-accion="seccion">
-                <i class="ti ti-users"></i>
-                Usuarios
-            </a>
-            <a class="nav-item admin-only" data-seccion="actividad" data-accion="seccion">
-                <i class="ti ti-clipboard-list"></i>
-                Actividad
-            </a>
-                        <a class="nav-item admin-only" data-seccion="movimientos" data-accion="seccion">
-                <i class="ti ti-arrows-exchange"></i>
-                Movimientos
-            </a>
-            <a class="nav-item admin-only" data-seccion="apikeys" data-accion="seccion">
-                 <i class="ti ti-key"></i>
-                 API Keys
-            </a>
+        <nav class="appnav" aria-label="Secciones">
+            <button type="button" class="nav-item active" data-seccion="dashboard" data-accion="seccion">Dashboard</button>
+            <button type="button" class="nav-item" data-seccion="productos" data-accion="seccion">Productos</button>
+            <button type="button" class="nav-item" data-seccion="scanner" data-accion="seccion">Scanner</button>
+            <button type="button" class="nav-item admin-only" data-seccion="movimientos" data-accion="seccion">Movimientos</button>
+            <button type="button" class="nav-item admin-only" data-seccion="usuarios" data-accion="seccion">Usuarios</button>
+            <button type="button" class="nav-item admin-only" data-seccion="apikeys" data-accion="seccion">API Keys</button>
+            <button type="button" class="nav-item admin-only" data-seccion="actividad" data-accion="seccion">Actividad</button>
         </nav>
 
-        <div class="sidebar-bottom">
-            <a class="nav-item" data-accion="abrirModalPassword">
-                <i class="ti ti-lock"></i>
-                Contraseña
-            </a>
-            <a class="nav-item nav-danger" id="logoutBtn">
-                <i class="ti ti-logout"></i>
-                Cerrar sesión
-            </a>
+        <div class="appbar-right">
+            <span id="usuarioNombre" class="topbar-user"></span>
+            <button type="button" id="themeBtn" class="btn-icon" aria-label="Cambiar tema"><i class="ti ti-sun" id="themeBtnIcon" aria-hidden="true"></i></button>
+            <button type="button" class="bar-link" data-accion="abrirModalPassword">Contraseña</button>
+            <button type="button" class="bar-link" id="logoutBtn">Cerrar sesión</button>
         </div>
 
-    </aside>
+    </header>
 
-    
-    <div class="main">
+    <main class="main">
 
-        
-        <div class="topbar">
-            <h1 class="topbar-title" id="tituloSeccion">Dashboard</h1>
-            <div class="topbar-right">
-                <span id="usuarioNombre" class="topbar-user"></span>
-                <button id="themeBtn" class="btn-icon"><i class="ti ti-moon" id="themeBtnIcon"></i></button>
-            </div>
-        </div>
+        <h1 class="topbar-title" id="tituloSeccion">Dashboard</h1>
 
-        
         <section id="seccion-dashboard" class="seccion">
 
             <div class="cards-grid">
@@ -130,10 +96,10 @@
                     <button class="btn btn-primary admin-only" data-accion="nuevoProducto">
                         <i class="ti ti-plus"></i> Nuevo Producto
                     </button>
-                    <button id="btnExcel" class="btn btn-success">
+                    <button id="btnExcel" class="btn btn-secondary">
                         <i class="ti ti-file-spreadsheet"></i> Excel
                     </button>
-                    <button id="btnPDF" class="btn btn-danger">
+                    <button id="btnPDF" class="btn btn-secondary">
                         <i class="ti ti-file-type-pdf"></i> PDF
                     </button>
                 </div>
@@ -309,7 +275,7 @@
     </div>
 </section>
 
-    </div>
+    </main>
 
 </div>
 
@@ -453,8 +419,8 @@
 <script src="vendor/jspdf/jspdf.umd.min.js"></script>
 <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="vendor/quagga/quagga.min.js"></script>
-<script src="js/ui.js?v=2"></script>
-<script src="js/productos.js?v=2"></script>
+<script src="js/ui.js?v=3"></script>
+<script src="js/productos.js?v=3"></script>
 <script src="js/usuarios.js?v=2"></script>
 <script src="js/logs.js?v=1"></script>
 <script src="js/scanner.js?v=1"></script>

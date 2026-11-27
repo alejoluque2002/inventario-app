@@ -55,8 +55,8 @@ Aplicación web de gestión de inventario desarrollada con PHP, MySQL y JavaScri
 - Gestión de usuarios desde la aplicación (solo administrador): alta, edición de nombre, email y rol, y restablecimiento de contraseña con una temporal que se muestra una sola vez
 - Cambio de contraseña
 - Exportación a Excel y PDF
-- Modo oscuro
-- Diseño responsive con sidebar lateral
+- Tema claro y oscuro (oscuro por defecto)
+- Diseño responsive con barra de navegación superior
 
 ---
 
@@ -226,6 +226,7 @@ inventario-app/
 │       ├── auth.js
 │       ├── login.js
 │       ├── logout.js
+│       ├── tema.js
 │       ├── ui.js
 │       ├── productos.js
 │       ├── usuarios.js
@@ -289,6 +290,7 @@ El frontend no carga nada de CDN: todas las librerías están en `frontend/vendo
 | jsPDF | 2.5.1 | MIT | Exportar a PDF |
 | QuaggaJS | 0.12.1 | MIT | Escáner de códigos de barras |
 | Tabler Icons (webfont) | 3.51.0 | MIT | Iconos |
+| IBM Plex Sans (webfont) | 5.1.1 | SIL OFL 1.1 | Tipografía |
 
 Para actualizar una librería: descarga la nueva versión, compara su hash sha384 con el del CDN oficial, sustituye el archivo en `frontend/vendor/` y prueba la aplicación.
 

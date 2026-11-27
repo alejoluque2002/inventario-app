@@ -31,17 +31,28 @@ function actualizarGrafica(productos) {
         .getElementById("graficaCategorias")
         .getContext("2d");
 
+    // Colores de las gráficas según el tema activo
+    Chart.defaults.color = colorCss("--muted");
+    Chart.defaults.borderColor = colorCss("--row-line");
+    Chart.defaults.font.family = '"IBM Plex Sans", system-ui, sans-serif';
+
+    const paleta = [1, 2, 3, 4, 5, 6].map(n => colorCss("--chart-" + n));
+
     grafica = new Chart(ctx, {
         type: "bar",
         data: {
             labels: labels,
             datasets: [{
                 label: "Productos por categoría",
-                data: datos
+                data: datos,
+                backgroundColor: paleta[0],
+                borderRadius: 2
             }]
         },
         options: {
-            responsive: true
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
 
@@ -66,7 +77,10 @@ function actualizarGrafica(productos) {
             labels: Object.keys(valoresPorCategoria),
             datasets: [{
                 label: "Valor (€)",
-                data: Object.values(valoresPorCategoria).map(v => v.toFixed(2))
+                data: Object.values(valoresPorCategoria).map(v => v.toFixed(2)),
+                backgroundColor: Object.keys(valoresPorCategoria).map((_, i) => paleta[i % paleta.length]),
+                borderColor: colorCss("--panel"),
+                borderWidth: 2
             }]
         },
         options: {
@@ -121,12 +135,12 @@ function mostrarProductos(productos) {
                 <td>${esc(producto.categoria)}</td>
                 <td class="admin-only">
                     <button
-                        class="btn btn-warning btn-sm me-2"
+                        class="btn btn-outline-secondary btn-sm me-2"
                         data-accion="editarProducto" data-id="${Number(producto.id)}">
                         Editar
                     </button>
                     <button
-                        class="btn btn-danger btn-sm"
+                        class="btn btn-outline-danger btn-sm"
                         data-accion="eliminarProducto" data-id="${Number(producto.id)}">
                         Eliminar
                     </button>
