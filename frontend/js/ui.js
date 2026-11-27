@@ -54,25 +54,44 @@ async function leerRespuesta(response) {
 
     return resultado;
 }
-// Tema
+// Tema (el valor inicial lo aplica tema.js antes de pintar la página)
 
 const themeBtn = document.getElementById("themeBtn");
 const themeBtnIcon = document.getElementById("themeBtnIcon");
-const temaGuardado = localStorage.getItem("tema");
 
-if (temaGuardado === "dark") {
-    document.body.classList.add("dark-mode");
-    themeBtnIcon.className = "ti ti-sun";
+function temaOscuro() {
+    return document.documentElement.getAttribute("data-bs-theme") === "dark";
 }
+
+function pintarBotonTema() {
+    const oscuro = temaOscuro();
+    themeBtnIcon.className = oscuro ? "ti ti-sun" : "ti ti-moon";
+    themeBtn.setAttribute("aria-label", oscuro ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+}
+
+// Lee un token de color del CSS (por ejemplo "--text")
+function colorCss(nombre) {
+    return getComputedStyle(document.documentElement).getPropertyValue(nombre).trim();
+}
+
+pintarBotonTema();
 
 themeBtn.addEventListener("click", () => {
 
-    document.body.classList.toggle("dark-mode");
+    const nuevo = temaOscuro() ? "light" : "dark";
 
-    const oscuro = document.body.classList.contains("dark-mode");
+    document.documentElement.setAttribute("data-bs-theme", nuevo);
 
-    localStorage.setItem("tema", oscuro ? "dark" : "light");
-    themeBtnIcon.className = oscuro ? "ti ti-sun" : "ti ti-moon";
+    try {
+        localStorage.setItem("tema", nuevo);
+    } catch (e) { /* sin almacenamiento: el tema solo dura esta sesión */ }
+
+    pintarBotonTema();
+
+    // Las gráficas usan los colores del tema: se vuelven a dibujar
+    if (typeof productosCache !== "undefined" && productosCache.length) {
+        actualizarGrafica(productosCache);
+    }
 });
 
 function aplicarPermisos() {
